@@ -50,7 +50,7 @@ filterLowCounts <- function(counts.dataframe, is.normalized = c(TRUE, FALSE),
     )
     
     if(verbose) message("features dimensions before normalization: ",
-                        dim(sub.counts.dataframe))
+                        dim(sub.counts.dataframe)[1])
     
     filtered.dataframe <- NOISeq::filtered.data(dataset = sub.counts.dataframe, 
                                                 factor = conditions, 
