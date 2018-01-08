@@ -12,6 +12,7 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
                                   size=2
                                   )
 {
+    print(plotly.flag)
     if(is.null(shapeColname) || is.null(colorColname))
     {stop("Please provide the column names for the shape and the color")}
 

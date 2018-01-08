@@ -2,18 +2,22 @@ source("R/utilities.R")
 source("R/filterLowCounts.R")
 source("R/plotFunctions.R")
 source("R/normalizationFunctions.R")
-countMatrix <- ReadDataFrameFromTsv(file.name.path="data/PFC_counts.txt")
+countMatrix <- ReadDataFrameFromTsv(file.name.path="data/NEW_PFCmatrix.txt")
 head(countMatrix)
+dim(countMatrix)
 
 designMatrix <- ReadDataFrameFromTsv(file.name.path="design/all_samples.tsv.csv")
 head(designMatrix)
+
 
 filteredCountsProp <- filterLowCounts(counts.dataframe=countMatrix, is.normalized=FALSE,
                                     design.dataframe=designMatrix,
                                     cond.col.name="gcondition",
                                     method.type="Proportion")
-head(filteredCountsProp) #15823
-# 
+head(filteredCountsProp) #15829
+dim(filteredCountsProp)
+
+
 # filteredCountsWilc <- filterLowCounts(counts.dataframe=countMatrix, is.normalized=FALSE,
 #                                       design.dataframe=designMatrix,
 #                                       cond.col.name="gcondition",
@@ -27,22 +31,23 @@ head(filteredCountsProp) #15823
 #                                       method.type="CPM") 
 # head(filteredCountsCpm) ##16190
 
-PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), 
+g=PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), 
                       design.matrix=designMatrix, shapeColname="genotype",
                       colorColname="gcondition", save.plot=FALSE,
                       plotly.flag=TRUE, show.plot.flag=TRUE)
+plotly::ggplotly(g)
 
-
-
-normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp, norm.type="uqua", 
+normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp, 
+                                    norm.type="uqua", 
                                     design.matrix=designMatrix)
 
 
-PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), 
+g=PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), 
                       design.matrix=designMatrix, shapeColname="condition",
                       colorColname="genotype", save.plot=FALSE,
                       plotly.flag=FALSE, show.plot.flag=TRUE, prefix.plot="uqua")
 
+plotly::ggplotly(g)
 
 neg.ctrls <- ReadDataFrameFromTsv(file.name.path="data/negative_controls.tsv", row.names.col=NULL)
 head(neg.ctrls)
@@ -60,10 +65,11 @@ ruvedExprData <- RUVgNormalizationFunction(data.to.normalize=filteredCountsProp,
 
 ruv.counts <- ruvedExprData@assayData$normalizedCounts
 
-PlotPCAPlotlyFunction(counts.data.frame=log1p(ruv.counts), 
+gr <- PlotPCAPlotlyFunction(counts.data.frame=log1p(ruv.counts), 
                       design.matrix=designMatrix, shapeColname="condition",
                       colorColname="genotype", save.plot=FALSE,
                       plotly.flag=FALSE, show.plot.flag=TRUE, prefix.plot="RUVg")
+plotly::ggplotly(gr)
 
 ## uqua + ruv
 ruvedExprData <- RUVgNormalizationFunction(data.to.normalize=round(normPropCountsUqua),
@@ -75,8 +81,14 @@ ruvedExprData <- RUVgNormalizationFunction(data.to.normalize=round(normPropCount
 
 ruv.counts <- ruvedExprData@assayData$normalizedCounts
 
-PlotPCAPlotlyFunction(counts.data.frame=log1p(ruv.counts), 
+gqr <- PlotPCAPlotlyFunction(counts.data.frame=log1p(ruv.counts), 
                       design.matrix=designMatrix, shapeColname="condition",
                       colorColname="genotype", save.plot=FALSE,
                       plotly.flag=FALSE, show.plot.flag=TRUE, prefix.plot="uqua+RUVg",
                       xPCA="PC2", yPCA="PC3")
+plotly::ggplotly(gqr)
+
+
+
+
+
