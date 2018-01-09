@@ -1,6 +1,8 @@
 source("R/utilities.R")
 source("R/filterLowCounts.R")
 source("R/plotFunctions.R")
+source("R/VolcanoPlotFunctions.R")
+source("R/MAPlotFunctions.R")
 source("R/normalizationFunctions.R")
 library(plotly)
 library(RUVSeq)
@@ -111,6 +113,7 @@ plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
 ### edgering
 source("R/edgeRFunctions.R")
 source("R/VolcanoPlotFunctions.R")
+source("R/MAPlotFunctions.R")
 desMat <- cbind(designMatrix, ruvedSExprData$W)
 colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
@@ -124,7 +127,36 @@ rescList1 <- applyEdgeR(counts=normExprData, design.matrix=desMat,
 
 for(i in 1:length(rescList1))
 {
-    PlotVolcanoPlot(de.results=rescList1[[i]], counts.dataframe=normExprData, design.matrix=desMat,
-                    show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[i], threshold=0.01)
+    filename <- paste0(names(rescList1)[i], "_edgeR")
+    WriteDataFrameAsTsv(data.frame.to.save=rescList1[[i]], file.name.path=file.path("res", filename))
 }
+
+
+PlotVolcanoPlot(de.results=rescList1[[1]], counts.dataframe=normExprData, design.matrix=desMat,
+                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
+PlotMAPlotCounts(de.results=rescList1[[1]], counts.dataframe=normExprData, design.matrix=desMat,
+                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
+
+
+PlotVolcanoPlot(de.results=rescList1[[2]], counts.dataframe=normExprData, design.matrix=desMat,
+                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05)
+PlotMAPlotCounts(de.results=rescList1[[2]], counts.dataframe=normExprData, design.matrix=desMat,
+                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05)
+
+
+PlotVolcanoPlot(de.results=rescList1[[3]], counts.dataframe=normExprData, design.matrix=desMat,
+                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[3], threshold=0.05)
+PlotMAPlotCounts(de.results=rescList1[[3]], counts.dataframe=normExprData, design.matrix=desMat,
+                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[3], threshold=0.05)
+
+
+PlotVolcanoPlot(de.results=rescList1[[4]], counts.dataframe=normExprData, design.matrix=desMat,
+                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[4], threshold=0.05)
+PlotMAPlotCounts(de.results=rescList1[[4]], counts.dataframe=normExprData, design.matrix=desMat,
+                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[4], threshold=0.05)
+
+
+
+
+
 

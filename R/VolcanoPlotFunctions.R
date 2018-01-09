@@ -1,4 +1,4 @@
-source("R/plotUtils.R")
+# source("R/plotUtils.R")
 ############ VOLCANO FUNCTIONS
 
 
@@ -63,7 +63,7 @@ GenerateGGVolcano <- function(processed.de.results, strings, plotly.flag) {
                          padj=format(padj, nsmall=10),
                         name=gene), size=0.7) + 
                  labs(list(title=strings$title, x=xlabl, y=ylabl)) + 
-                scale_color_manual(values=c("blue2", "red2")#, "orange2", "orange2"))
+                scale_color_manual(values=c("blue2", "red2"))#, "orange2", "orange2"))
             
             # if(!plotly.flag) {
             #     ggp <- ggp + geom_point(data=subset(processed.de.results, 
