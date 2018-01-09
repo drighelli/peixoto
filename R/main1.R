@@ -122,13 +122,9 @@ rescList1 <- applyEdgeR(counts=normExprData, design.matrix=desMat,
                         contrasts=cc, useIntercept=FALSE, p.threshold=1,
                         verbose=TRUE)
 
-
-PlotVolcanoPlot(de.results=rescList1[[2]], counts.dataframe=normExprData, design.matrix=desMat,
-                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.01)
-
-
-
-
-
-
+for(i in 1:length(rescList1))
+{
+    PlotVolcanoPlot(de.results=rescList1[[i]], counts.dataframe=normExprData, design.matrix=desMat,
+                    show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[i], threshold=0.01)
+}
 
