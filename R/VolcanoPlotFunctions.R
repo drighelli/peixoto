@@ -84,7 +84,16 @@ GenerateGGVolcano <- function(processed.de.results, strings, plotly.flag) {
     return(ggp)
 }
 
-PlotVolcanoPlot <- function(de.results, counts.dataframe=NULL, design.matrix=NULL, show.plot.flag=TRUE, plotly.flag=FALSE, save.plot=FALSE, plot.folder=NULL, prefix.plot=NULL, threshold) {
+PlotVolcanoPlot <- function(de.results, 
+                            counts.dataframe=NULL, 
+                            design.matrix=NULL, 
+                            show.plot.flag=TRUE, 
+                            plotly.flag=FALSE, 
+                            save.plot=FALSE, 
+                            plot.folder=NULL, 
+                            prefix.plot=NULL, 
+                            threshold) 
+{
     require("plotly")
     # title <- paste0(prefix.plot, " Volcano Plot")
     strings <- GeneratePlotStrings(path=plot.folder, prefix=prefix.plot, plot.type="VolcanoPlot")

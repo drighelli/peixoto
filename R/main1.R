@@ -9,10 +9,15 @@ library(RUVSeq)
 
 ###Importing data
 
-countMatrix <- ReadDataFrameFromTsv(file.name.path="../data/NEW_PFCmatrix.txt")
-# head(countMatrix)
+firstcountMatrix <- ReadDataFrameFromTsv(file.name.path="data/PFC_counts.txt")
+dim(firstcountMatrix)
+secondcountMatrix <- ReadDataFrameFromTsv(file.name.path="data/NEW_PFCmatrix.txt")
+dim(secondcountMatrix)
 
-designMatrix <- ReadDataFrameFromTsv(file.name.path="../design/all_samples.tsv.csv")
+countMatrix <- ReadDataFrameFromTsv(file.name.path="data/refSEQ_countMatrix.txt")
+dim(countMatrix)
+
+designMatrix <- ReadDataFrameFromTsv(file.name.path="design/all_samples_short_names.tsv.csv")
 head(designMatrix)
 
 filteredCountsProp <- filterLowCounts(counts.dataframe=countMatrix, 
@@ -47,7 +52,7 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 ##Negative control genes
 ## Using Negative Control Genes to normalize data
 
-neg.ctrls <- ReadDataFrameFromTsv(file.name.path="../data/negative_controls.tsv", row.names.col=NULL)
+neg.ctrls <- ReadDataFrameFromTsv(file.name.path="data/negative_controls.tsv", row.names.col=NULL)
 neg.ctrls.ens <- as.character(neg.ctrls$To)
 neg.ctrls.est <- neg.ctrls.ens[which(neg.ctrls.ens %in% rownames(filteredCountsProp))]
 
@@ -125,6 +130,11 @@ rescList1 <- applyEdgeR(counts=normExprData, design.matrix=desMat,
                         contrasts=cc, useIntercept=FALSE, p.threshold=1,
                         verbose=TRUE)
 
+    h <- PlotHistPvalPlot(rescList1[[i]], design.matrix=desMat, show.plot.flag=FALSE, 
+                     plotly.flag=FALSE, save.plot=FALSE, 
+                     prefix.plot=names(rescList1)[i])
+
+
 for(i in 1:length(rescList1))
 {
     filename <- paste0(names(rescList1)[i], "_edgeR")
@@ -157,6 +167,24 @@ PlotMAPlotCounts(de.results=rescList1[[4]], counts.dataframe=normExprData, desig
 
 
 
+library(biomaRt)
+
+mart = useMart('ENSEMBL_MART_ENSEMBL',dataset='mmusculus_gene_ensembl')#, 
+                #host="may2012.archive.ensembl.org")
+listAttributes(mart)[grep("entrez", listAttributes(mart)[,1]),1]
+attrs <- c("ensembl_gene_id", "external_gene_name", "refseq_mrna", "entrezgene")
+gene.map <- getBM(attributes=attrs, mart=mart)
+
+res <- rescList1[[1]]
+
+gene.map$refseq_mrna <- gsub(pattern="NM_", replacement="", gene.map$refseq_mrna)
+
+length(unique(rownames(filteredCountsProp)[which( rownames(countMatrix) %in% gene.map$entrezgene)]))
+
+length(rownames(filteredCountsProp)[which( rownames(filteredCountsProp) %in% gene.map$ensembl_gene_id )])
+
+length(unique(gene.map$external_gene_name[which(gene.map$ensembl_gene_id %in% rownames(filteredCountsProp))]))
+gene.map[which( gene.map$ensembl_gene_id %in% rownames(filteredCountsProp)),"external_gene_name"]
 
 
 

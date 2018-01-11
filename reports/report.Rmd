@@ -142,6 +142,7 @@ source("../R/edgeRFunctions.R")
 source("../R/VolcanoPlotFunctions.R")
 source("../R/plotUtils.R")
 source("../R/MAPlotFunctions.R")
+source("../R/pvalHistPlotFunctions.R")
 desMat <- cbind(designMatrix, ruvedSExprData$W)
 colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
@@ -152,26 +153,47 @@ rescList1 <- applyEdgeR(counts=normExprData, design.matrix=desMat,
                         weight.columns=c("W_1", "W_2", "W_3", "W_4"),
                         contrasts=cc, useIntercept=FALSE, p.threshold=1,
                         verbose=TRUE)
+```
 
-
+### KOSD5 vs KOHC5
+```{r}
+PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat, 
+                show.plot.flag=TRUE, plotly.flag=TRUE, 
+                prefix.plot=names(rescList1)[1])
 PlotVolcanoPlot(de.results=rescList1[[1]], counts.dataframe=normExprData, design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
 PlotMAPlotCounts(de.results=rescList1[[1]], counts.dataframe=normExprData, design.matrix=desMat,
                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
 
+```
 
+### KORS2 vs KOHC7
+```{r}
+PlotHistPvalPlot(de.results=rescList1[[2]], design.matrix=desMat, 
+                show.plot.flag=TRUE, plotly.flag=TRUE, 
+                prefix.plot=names(rescList1)[2])
 PlotVolcanoPlot(de.results=rescList1[[2]], counts.dataframe=normExprData, design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05)
 PlotMAPlotCounts(de.results=rescList1[[2]], counts.dataframe=normExprData, design.matrix=desMat,
                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05)
+```
 
-
+### WTSD5 vs WTHC5
+```{r}
+PlotHistPvalPlot(de.results=rescList1[[3]], design.matrix=desMat, 
+                show.plot.flag=TRUE, plotly.flag=TRUE, 
+                prefix.plot=names(rescList1)[3])
 PlotVolcanoPlot(de.results=rescList1[[3]], counts.dataframe=normExprData, design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[3], threshold=0.05)
 PlotMAPlotCounts(de.results=rescList1[[3]], counts.dataframe=normExprData, design.matrix=desMat,
                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[3], threshold=0.05)
+```
 
-
+### WTRS2 vs WTHC7
+```{r}
+PlotHistPvalPlot(de.results=rescList1[[4]], design.matrix=desMat, 
+                show.plot.flag=TRUE, plotly.flag=TRUE, 
+                prefix.plot=names(rescList1)[4])
 PlotVolcanoPlot(de.results=rescList1[[4]], counts.dataframe=normExprData, design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[4], threshold=0.05)
 PlotMAPlotCounts(de.results=rescList1[[4]], counts.dataframe=normExprData, design.matrix=desMat,
