@@ -34,18 +34,27 @@ RUVgNormalizationFunction <- function(data.to.normalize,
                                       design.matrix, 
                                       desMatColStr, 
                                       estimated.gene.names, 
-                                      k=1, isLog=FALSE) {
+                                      k=1, isLog=FALSE,
+                                      gene.names.col=NULL) {
     
     if( length( which(colnames(design.matrix) == desMatColStr)) == 0 ) {
         stop("Please provide a design matrix with a named ", desMatColStr, 
             " column")
     }
     # require("RUVSeq")
+    if(is.null(gene.names.col))
+    {
+        genes <- rownames(design.matrix)
+    } else {
+        genes <- data.to.normalize[,"gene.names.col"]
+    }
+    data.to.normalize <- data.to.normalize[,
+                                which(colnames(data.to.normalize) %in% colnames(design.matrix))]
     if(!isLog) {
         dataset.set <- EDASeq::newSeqExpressionSet(as.matrix(data.to.normalize),
                                     phenoData=data.frame(
                                     design.matrix[[desMatColStr]],
-                                    row.names = rownames(design.matrix)
+                                    row.names=
                                     ))
     } else {
         dataset.set <- data.to.normalize

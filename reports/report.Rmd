@@ -24,11 +24,11 @@ library(RUVSeq)
 ```
 ###Importing data
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=TRUE}
-countMatrix <- ReadDataFrameFromTsv(file.name.path="../data/NEW_PFCmatrix.txt")
+countMatrix <- ReadDataFrameFromTsv(file.name.path="../data/refSEQ_countMatrix.txt")
 # head(countMatrix)
 
-designMatrix <- ReadDataFrameFromTsv(file.name.path="../design/all_samples.tsv.csv")
-head(designMatrix)
+designMatrix <- ReadDataFrameFromTsv(file.name.path="../design/all_samples_short_names.tsv.csv")
+# head(designMatrix)
 
 filteredCountsProp <- filterLowCounts(counts.dataframe=countMatrix, 
                                     is.normalized=FALSE,
@@ -68,7 +68,7 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 Using Negative Control Genes to normalize data
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 neg.ctrls <- ReadDataFrameFromTsv(file.name.path="../data/negative_controls.tsv", row.names.col=NULL)
-neg.ctrls.ens <- as.character(neg.ctrls$To)
+neg.ctrls.ens <- as.character(neg.ctrls$From)
 neg.ctrls.est <- neg.ctrls.ens[which(neg.ctrls.ens %in% rownames(filteredCountsProp))]
 
 pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua[neg.ctrls.est,]), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
@@ -79,39 +79,39 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 ```
 
 
-###RUVg Normalization
+<!-- ###RUVg Normalization -->
 
-```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
-ruvedExprData <- RUVgNormalizationFunction(data.to.normalize=filteredCountsProp,
-                                           design.matrix=designMatrix,
-                                           desMatColStr="gcondition",
-                                           estimated.gene.names=neg.ctrls.est,
-                                           k=1,
-                                           isLog=FALSE)
+<!-- ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE} -->
+<!-- ruvedExprData <- RUVgNormalizationFunction(data.to.normalize=filteredCountsProp, -->
+<!--                                            design.matrix=designMatrix, -->
+<!--                                            desMatColStr="gcondition", -->
+<!--                                            estimated.gene.names=neg.ctrls.est, -->
+<!--                                            k=1, -->
+<!--                                            isLog=FALSE) -->
 
-normExprData <- ruvedExprData@assayData$normalizedCounts
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="RUV-uq-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="RUV-uq-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="RUV-uq-Norm")
-plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
-```
+<!-- normExprData <- ruvedExprData@assayData$normalizedCounts -->
+<!-- pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="RUV-uq-Norm") -->
+<!-- pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="RUV-uq-Norm") -->
+<!-- pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="RUV-uq-Norm") -->
+<!-- plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE) -->
+<!-- ``` -->
 
-###Upper Quartile + RUVg Normalization
+<!-- ###Upper Quartile + RUVg Normalization -->
 
-```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
-ruvedExprData <- RUVgNormalizationFunction(data.to.normalize=round(normPropCountsUqua),
-                                           design.matrix=designMatrix,
-                                           desMatColStr="gcondition",
-                                           estimated.gene.names=neg.ctrls.est,
-                                           k=1,
-                                           isLog=FALSE)
+<!-- ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE} -->
+<!-- ruvedExprData <- RUVgNormalizationFunction(data.to.normalize=round(normPropCountsUqua), -->
+<!--                                            design.matrix=designMatrix, -->
+<!--                                            desMatColStr="gcondition", -->
+<!--                                            estimated.gene.names=neg.ctrls.est, -->
+<!--                                            k=1, -->
+<!--                                            isLog=FALSE) -->
 
-normExprData <- ruvedExprData@assayData$normalizedCounts
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
-plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
-```
+<!-- normExprData <- ruvedExprData@assayData$normalizedCounts -->
+<!-- pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm") -->
+<!-- pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm") -->
+<!-- pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm") -->
+<!-- plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE) -->
+<!-- ``` -->
 
 
 ###Upper Quartile + RUVs Normalization

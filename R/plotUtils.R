@@ -30,7 +30,7 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new$significance[which(de.results.new$padj < threshold)] <- "significative"
         de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
         de.results.new$method <- rep(x="DESeq2", times=dim(de.results.new)[1])
-
+        de.results.new$gene <- rownames(de.results.new)
     } else if("theta" %in% colnames(de.results.new)) { ## working on NOISeqbio results
 
         de.results.new <- de.results.new[, c(1, 2, 6)]
@@ -43,7 +43,7 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new <- de.results.new[order(de.results.new$prob, decreasing=TRUE),]
         de.results.new$minuslog101minuspp <- (-1) * log10( (1 - de.results.new$prob + 0.000001))
         de.results.new$method <- rep(x="NOISeqBio", times=dim(de.results.new)[1])
-
+        de.results.new$gene <- rownames(de.results.new)
     } else if("M" %in% colnames(de.results.new)) { ## working on NOISeq results
 
         de.results.new <- de.results.new[, c(1, 2, 7)]
@@ -56,7 +56,7 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new <- de.results.new[order(de.results.new$prob, decreasing=TRUE),]
         de.results.new$minuslog101minuspp <- (-1) * log10( (1 - de.results.new$prob + 0.000001))
         de.results.new$method <- rep(x="NOISeq", times=dim(de.results.new)[1])
-
+        de.results.new$gene <- rownames(de.results.new)
     }else if("F" %in% colnames(de.results.new)) { ## working on edgeR results
         
         de.results.new <- de.results.new[, c(1:3, 6:7)]
@@ -72,9 +72,10 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
         de.results.new$minuslog10PAdj <- (-1) * log10(de.results.new$FDR)
         de.results.new$method <- rep(x="edgeR", times=dim(de.results.new)[1])
+        de.results.new$gene <- de.results$map
     }
 
-    de.results.new$gene <- rownames(de.results.new)
+    # de.results.new$gene <- rownames(de.results.new)
 
     return(de.results.new)
 }
