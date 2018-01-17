@@ -65,15 +65,29 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 
 
 ##Negative control genes
-Using Negative Control Genes to normalize data
+Estimating Negative Control Genes to normalize data
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
-neg.ctrls <- ReadDataFrameFromTsv(file.name.path="../data/negative_controls.tsv", row.names.col=NULL)
-neg.ctrls.ens <- as.character(neg.ctrls$From)
-neg.ctrls.est <- neg.ctrls.ens[which(neg.ctrls.ens %in% rownames(filteredCountsProp))]
+#### estimating neg controls
+source("../R/edgeRFunctions.R")
+cc <- c("KOSD5 - KOHC5", "KORS2 - KOHC7", "WTSD5 - WTHC5", "WTRS2 - WTHC7")
 
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua[neg.ctrls.est,]), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua[neg.ctrls.est,]), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua[neg.ctrls.est,]), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=designMatrix,
+                        factors.column="gcondition", 
+                        weight.columns=NULL,
+                        contrasts=cc, useIntercept=FALSE, p.threshold=1,
+                        verbose=TRUE)
+neg.ctrl <- character()
+for(i in 1:length(rescList1)) {
+    ind <- which(rescList1[[i]]$FDR > 0.1)
+    neg.ctrl <- c(neg.ctrl, rownames(rescList1[[i]])[ind] )
+}
+neg.ctrl.est <- unique(neg.ctrl)
+
+ind.ctrls <- which(rownames(normPropCountsUqua) %in% neg.ctrl.est)
+counts.neg.ctrls <- normPropCountsUqua[ind.ctrls,]
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
 plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 
 ```
@@ -120,7 +134,7 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 library(RUVSeq)
 #groups <- makeGroups(designMatrix$classic)[1,,drop=FALSE]
 groups <- makeGroups(paste0(designMatrix$genotype, designMatrix$classic))[c(1, 3),]
-ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx = neg.ctrls.est,
+ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx = neg.ctrl.est,
                        scIdx = groups, k = 5)
 
 normExprData <- ruvedSExprData$normalizedCounts
@@ -134,6 +148,7 @@ pal <- RColorBrewer::brewer.pal(9, "Set1")
 plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
 ```
 
+
 ## edgeR DE Analysis
 
 ```{r}
@@ -143,6 +158,7 @@ source("../R/VolcanoPlotFunctions.R")
 source("../R/plotUtils.R")
 source("../R/MAPlotFunctions.R")
 source("../R/pvalHistPlotFunctions.R")
+source("../R/plotUtils.R")
 desMat <- cbind(designMatrix, ruvedSExprData$W)
 colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
@@ -160,9 +176,43 @@ rescList1 <- applyEdgeR(counts=normExprData, design.matrix=desMat,
 PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat, 
                 show.plot.flag=TRUE, plotly.flag=TRUE, 
                 prefix.plot=names(rescList1)[1])
-PlotVolcanoPlot(de.results=rescList1[[1]], counts.dataframe=normExprData, design.matrix=desMat,
+```
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+## mapping ensembl gene id using biomart
+library(biomaRt)
+
+names <- as.integer(rownames(rescList1[[1]])[order(rownames(rescList1[[1]]))])
+
+mart = useMart('ENSEMBL_MART_ENSEMBL',dataset='mmusculus_gene_ensembl', 
+                host="may2012.archive.ensembl.org") ## using mm9
+attrs <- c("ensembl_gene_id", "external_gene_id", "entrezgene")
+gene.map <- getBM(attributes=attrs, mart=mart, filters="entrezgene", 
+                  values=names)
+
+## gene.map
+gm.no.dp <- gene.map[-which(duplicated(gene.map$entrezgene)),]
+ind.gm <- which(gm.no.dp$entrezgene %in% names)
+gm.no.dpigm <- gm.no.dp[ind.gm,]
+gm.no.dpigm.o <- gm.no.dpigm[order(gm.no.dpigm$entrezgene),]
+
+## names
+ind.nm <- which(names %in% gene.map$entrezgene)
+names.gm <- names[ind.nm]
+names.gm.o <- names.gm[order(names.gm)]
+ndf.map <- cbind.data.frame(gm.no.dpigm.o,
+                    names.gm.o)
+
+res.o <- rescList1[[1]][order(as.integer(rownames(rescList1[[1]]))),]
+
+ind.rn <- which(as.integer(rownames(res.o)) %in% ndf.map$names.gm.o)
+res.o$map <- NA
+# filtCountsProp.o$ensmap <- NA
+res.o$map[ind.rn] <- ndf.map$external_gene_id
+
+PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
-PlotMAPlotCounts(de.results=rescList1[[1]], counts.dataframe=normExprData, design.matrix=desMat,
+PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
 
 ```
@@ -172,9 +222,43 @@ PlotMAPlotCounts(de.results=rescList1[[1]], counts.dataframe=normExprData, desig
 PlotHistPvalPlot(de.results=rescList1[[2]], design.matrix=desMat, 
                 show.plot.flag=TRUE, plotly.flag=TRUE, 
                 prefix.plot=names(rescList1)[2])
-PlotVolcanoPlot(de.results=rescList1[[2]], counts.dataframe=normExprData, design.matrix=desMat,
+```
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+## mapping ensembl gene id using biomart
+library(biomaRt)
+
+names <- as.integer(rownames(rescList1[[2]])[order(rownames(rescList1[[2]]))])
+
+mart = useMart('ENSEMBL_MART_ENSEMBL',dataset='mmusculus_gene_ensembl', 
+                host="may2012.archive.ensembl.org") ## using mm9
+attrs <- c("ensembl_gene_id", "external_gene_id", "entrezgene")
+gene.map <- getBM(attributes=attrs, mart=mart, filters="entrezgene", 
+                  values=names)
+
+## gene.map
+gm.no.dp <- gene.map[-which(duplicated(gene.map$entrezgene)),]
+ind.gm <- which(gm.no.dp$entrezgene %in% names)
+gm.no.dpigm <- gm.no.dp[ind.gm,]
+gm.no.dpigm.o <- gm.no.dpigm[order(gm.no.dpigm$entrezgene),]
+
+## names
+ind.nm <- which(names %in% gene.map$entrezgene)
+names.gm <- names[ind.nm]
+names.gm.o <- names.gm[order(names.gm)]
+ndf.map <- cbind.data.frame(gm.no.dpigm.o,
+                    names.gm.o)
+
+res.o <- rescList1[[2]][order(as.integer(rownames(rescList1[[2]]))),]
+
+ind.rn <- which(as.integer(rownames(res.o)) %in% ndf.map$names.gm.o)
+res.o$map <- NA
+# filtCountsProp.o$ensmap <- NA
+res.o$map[ind.rn] <- ndf.map$external_gene_id
+
+PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05)
-PlotMAPlotCounts(de.results=rescList1[[2]], counts.dataframe=normExprData, design.matrix=desMat,
+PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05)
 ```
 
@@ -183,9 +267,43 @@ PlotMAPlotCounts(de.results=rescList1[[2]], counts.dataframe=normExprData, desig
 PlotHistPvalPlot(de.results=rescList1[[3]], design.matrix=desMat, 
                 show.plot.flag=TRUE, plotly.flag=TRUE, 
                 prefix.plot=names(rescList1)[3])
-PlotVolcanoPlot(de.results=rescList1[[3]], counts.dataframe=normExprData, design.matrix=desMat,
+```
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+## mapping ensembl gene id using biomart
+library(biomaRt)
+
+names <- as.integer(rownames(rescList1[[3]])[order(rownames(rescList1[[3]]))])
+
+mart = useMart('ENSEMBL_MART_ENSEMBL',dataset='mmusculus_gene_ensembl', 
+                host="may2012.archive.ensembl.org") ## using mm9
+attrs <- c("ensembl_gene_id", "external_gene_id", "entrezgene")
+gene.map <- getBM(attributes=attrs, mart=mart, filters="entrezgene", 
+                  values=names)
+
+## gene.map
+gm.no.dp <- gene.map[-which(duplicated(gene.map$entrezgene)),]
+ind.gm <- which(gm.no.dp$entrezgene %in% names)
+gm.no.dpigm <- gm.no.dp[ind.gm,]
+gm.no.dpigm.o <- gm.no.dpigm[order(gm.no.dpigm$entrezgene),]
+
+## names
+ind.nm <- which(names %in% gene.map$entrezgene)
+names.gm <- names[ind.nm]
+names.gm.o <- names.gm[order(names.gm)]
+ndf.map <- cbind.data.frame(gm.no.dpigm.o,
+                    names.gm.o)
+
+res.o <- rescList1[[3]][order(as.integer(rownames(rescList1[[3]]))),]
+
+ind.rn <- which(as.integer(rownames(res.o)) %in% ndf.map$names.gm.o)
+res.o$map <- NA
+# filtCountsProp.o$ensmap <- NA
+res.o$map[ind.rn] <- ndf.map$external_gene_id
+
+PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[3], threshold=0.05)
-PlotMAPlotCounts(de.results=rescList1[[3]], counts.dataframe=normExprData, design.matrix=desMat,
+PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[3], threshold=0.05)
 ```
 
@@ -194,11 +312,44 @@ PlotMAPlotCounts(de.results=rescList1[[3]], counts.dataframe=normExprData, desig
 PlotHistPvalPlot(de.results=rescList1[[4]], design.matrix=desMat, 
                 show.plot.flag=TRUE, plotly.flag=TRUE, 
                 prefix.plot=names(rescList1)[4])
-PlotVolcanoPlot(de.results=rescList1[[4]], counts.dataframe=normExprData, design.matrix=desMat,
-                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[4], threshold=0.05)
-PlotMAPlotCounts(de.results=rescList1[[4]], counts.dataframe=normExprData, design.matrix=desMat,
-                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[4], threshold=0.05)
+```
 
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+## mapping ensembl gene id using biomart
+library(biomaRt)
+
+names <- as.integer(rownames(rescList1[[4]])[order(rownames(rescList1[[4]]))])
+
+mart = useMart('ENSEMBL_MART_ENSEMBL',dataset='mmusculus_gene_ensembl', 
+                host="may2012.archive.ensembl.org") ## using mm9
+attrs <- c("ensembl_gene_id", "external_gene_id", "entrezgene")
+gene.map <- getBM(attributes=attrs, mart=mart, filters="entrezgene", 
+                  values=names)
+
+## gene.map
+gm.no.dp <- gene.map[-which(duplicated(gene.map$entrezgene)),]
+ind.gm <- which(gm.no.dp$entrezgene %in% names)
+gm.no.dpigm <- gm.no.dp[ind.gm,]
+gm.no.dpigm.o <- gm.no.dpigm[order(gm.no.dpigm$entrezgene),]
+
+## names
+ind.nm <- which(names %in% gene.map$entrezgene)
+names.gm <- names[ind.nm]
+names.gm.o <- names.gm[order(names.gm)]
+ndf.map <- cbind.data.frame(gm.no.dpigm.o,
+                    names.gm.o)
+
+res.o <- rescList1[[4]][order(as.integer(rownames(rescList1[[4]]))),]
+
+ind.rn <- which(as.integer(rownames(res.o)) %in% ndf.map$names.gm.o)
+res.o$map <- NA
+# filtCountsProp.o$ensmap <- NA
+res.o$map[ind.rn] <- ndf.map$external_gene_id
+
+PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
+                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[4], threshold=0.05)
+PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
+                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[4], threshold=0.05)
 ```
 
 

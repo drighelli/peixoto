@@ -25,21 +25,29 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
 
     factors <- design.matrix[[factors.column]]
 
+    if(verbose) message("Setting intercept to: ", useIntercept)
+    
     if(!is.null(weight.columns))
     {
         stopifnot(is.character(weight.columns))
         stopifnot(sum(colnames(design.matrix) %in% weight.columns)>0)
         weights <- as.matrix(design.matrix[weight.columns])
-    }
-
-    if(verbose) message("Setting intercept to: ", useIntercept)
-    if(useIntercept)
-    {
-        design <- model.matrix(~ 1 + factors + weights)
+        if(useIntercept)
+        {
+            design <- model.matrix(~ 1 + factors + weights)
+        } else {
+            design <- model.matrix(~ 0 + factors + weights)
+        }
+        colnames(design) <- c(as.character(unique(factors)), weight.columns)
     } else {
-        design <- model.matrix(~ 0 + factors + weights)
+        if(useIntercept)
+        {
+            design <- model.matrix(~ 1 + factors)
+        } else {
+            design <- model.matrix(~ 0 + factors)
+        }
+        colnames(design) <- c(as.character(unique(factors)))
     }
-    colnames(design) <- c(as.character(unique(factors)), weight.columns)
 
     fit <- applyEdgeRFit(counts=counts, factors=factors, design=design,
                         verbose=verbose)

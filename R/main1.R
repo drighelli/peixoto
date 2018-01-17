@@ -141,11 +141,26 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 # pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
 # plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 
-###Upper Quartile + RUVs Normalization
+#### estimating neg controls
+cc <- c("KOSD5 - KOHC5", "KORS2 - KOHC7", "WTSD5 - WTHC5", "WTRS2 - WTHC7")
 
+rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=designMatrix,
+                        factors.column="gcondition", 
+                        weight.columns=NULL,
+                        contrasts=cc, useIntercept=FALSE, p.threshold=1,
+                        verbose=TRUE)
+neg.ctrl <- character()
+for(i in 1:length(rescList1)) {
+    ind <- which(rescList1[[i]]$FDR > 0.1)
+    neg.ctrl <- c(neg.ctrl, rownames(rescList1[[i]])[ind] )
+}
+neg.ctrl <- unique(neg.ctrl)
+
+
+###Upper Quartile + RUVs Normalization
 library(RUVSeq)
 groups <- makeGroups(paste0(designMatrix$genotype, designMatrix$classic))[c(1, 3),]
-ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrls.est,
+ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl,
                        scIdx = groups, k = 5)
 
 normExprData <- ruvedSExprData$normalizedCounts
@@ -159,11 +174,11 @@ pal <- RColorBrewer::brewer.pal(9, "Set1")
 plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
 
 
-
 ### edgering
 source("R/edgeRFunctions.R")
 source("R/VolcanoPlotFunctions.R")
 source("R/MAPlotFunctions.R")
+source("R/pvalHistPlotFunctions.R")
 desMat <- cbind(designMatrix, ruvedSExprData$W)
 colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
@@ -175,9 +190,9 @@ rescList1 <- applyEdgeR(counts=normExprData, design.matrix=desMat,
                         contrasts=cc, useIntercept=FALSE, p.threshold=1,
                         verbose=TRUE)
 
-    h <- PlotHistPvalPlot(rescList1[[i]], design.matrix=desMat, show.plot.flag=FALSE, 
-                     plotly.flag=FALSE, save.plot=FALSE, 
-                     prefix.plot=names(rescList1)[i])
+PlotHistPvalPlot(rescList1[[1]], design.matrix=desMat, show.plot.flag=TRUE, 
+                 plotly.flag=TRUE, save.plot=FALSE, 
+                 prefix.plot=names(rescList1)[1])
 
 
 for(i in 1:length(rescList1))
