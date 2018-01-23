@@ -1,7 +1,8 @@
 
 #########################
 ProcessDEResultsForPlot <- function(de.results, threshold, 
-                                    counts.dataframe=NULL, design.matrix=NULL) 
+                                    counts.dataframe=NULL, design.matrix=NULL,
+                                    pos.ctrls.list=NULL) 
 {
     de.results.new <- de.results
     de.results.new <- de.results.new[order(rownames(de.results.new)),]
@@ -72,7 +73,17 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
         de.results.new$minuslog10PAdj <- (-1) * log10(de.results.new$FDR)
         de.results.new$method <- rep(x="edgeR", times=dim(de.results.new)[1])
-        de.results.new$gene <- de.results$map
+        de.results.new$gene <- de.results$gene
+        if(!is.null(pos.ctrls.list))
+        {
+            idx.pos <- which(rownames(de.results.new) %in% pos.ctrls.list)
+            if(length(idx.pos)!=0) 
+            {
+                de.results.new$significance[idx] <- "pos-ctrl"
+            } else {
+                warning("no positive controls found!")
+            }
+        }
     }
 
     # de.results.new$gene <- rownames(de.results.new)

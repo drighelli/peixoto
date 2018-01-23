@@ -62,8 +62,14 @@ GenerateGGVolcano <- function(processed.de.results, strings, plotly.flag) {
                     aes(x=log2FoldChange, y=minuslog10pval, color=significance,
                          padj=format(padj, nsmall=10),
                         name=gene), size=0.7) + 
-                 labs(list(title=strings$title, x=xlabl, y=ylabl)) + 
-                scale_color_manual(values=c("blue2", "red2"))#, "orange2", "orange2"))
+                 labs(list(title=strings$title, x=xlabl, y=ylabl)) #+
+            if(length(unique(processed.de.results$significance)) == 2)
+            {
+                ggp <- ggp + scale_color_manual(values=c("blue2", "red2"))#, "orange2", "orange2"))
+            } else {
+                ggp <- ggp + scale_color_manual(values=c("blue2", "green2", "red2"))#, "orange2", "orange2"))
+            }
+                
             
             # if(!plotly.flag) {
             #     ggp <- ggp + geom_point(data=subset(processed.de.results, 
@@ -92,13 +98,19 @@ PlotVolcanoPlot <- function(de.results,
                             save.plot=FALSE, 
                             plot.folder=NULL, 
                             prefix.plot=NULL, 
-                            threshold) 
+                            threshold,
+                            positive.ctrls.list=NULL) 
 {
     require("plotly")
     # title <- paste0(prefix.plot, " Volcano Plot")
-    strings <- GeneratePlotStrings(path=plot.folder, prefix=prefix.plot, plot.type="VolcanoPlot")
+    strings <- GeneratePlotStrings(path=plot.folder, prefix=prefix.plot, 
+                                    plot.type="VolcanoPlot")
 
-    processed.de.results <- ProcessDEResultsForPlot(de.results=de.results, threshold=threshold, counts.dataframe=counts.dataframe, design.matrix=design.matrix)
+    processed.de.results <- ProcessDEResultsForPlot(de.results=de.results, 
+                                    threshold=threshold, 
+                                    counts.dataframe=counts.dataframe, 
+                                    design.matrix=design.matrix,
+                                    pos.ctrls.list=positive.ctrls.list)
 
     ggp <- GenerateGGVolcano(processed.de.results, strings, plotly.flag)
 
@@ -108,7 +120,9 @@ PlotVolcanoPlot <- function(de.results,
             stop("Please set a folder where to plot the Volcano-Plot!")
         }
         if(!is.null(strings$plot.file.name)){
-            SaveGGplot(ggplot.to.save=ggp, plot.folder=strings$plot.folder, plot.file.name=strings$plot.file.name, plotly.flag=plotly.flag)
+            SaveGGplot(ggplot.to.save=ggp, plot.folder=strings$plot.folder, 
+                        plot.file.name=strings$plot.file.name, 
+                        plotly.flag=plotly.flag)
         } else {
             stop("Please set a name for the Volcano-Plot!")
         }
@@ -123,4 +137,5 @@ PlotVolcanoPlot <- function(de.results,
             plot(ggp)
         }
     }
+    # return(ggp)
 }
