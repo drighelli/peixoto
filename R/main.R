@@ -91,6 +91,7 @@ plotly::ggplotly(g)
 # neg.ctrls <- ReadDataFrameFromTsv(file.name.path="data/full_SD_Neg_Control_genes_BMC_genomics.csv", row.names.col=NULL)
 # head(neg.ctrls)
 # 
+
 rownames <- as.integer(rownames(countMatrix))
 
 rownames <- rownames[order(rownames)]
@@ -119,6 +120,15 @@ rownames.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
 # if(length(idx.e) > 0) noNaCountMatrix <- noNaCountMatrix[-idx.e,]
 # noNaCountMatrix$symbols[duplicated(noNaCountMatrix$symbols)]
 # dim(noNaCountMatrix) ##20730
+
+
+
+rownames <- as.integer(rownames(countMatrix))
+
+rownames <- rownames[order(rownames)]
+rownames.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                                       filter.values=rownames, c("external_gene_name",
+                                                                 "mgi_symbol", "entrezgene"))
 
 
 noNaCountMatrix <- attachGeneColumnToDf(mainDf=countMatrix,

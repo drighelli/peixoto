@@ -32,7 +32,8 @@ PlotHistPvalPlot <- function(de.results, design.matrix,
                           strings=strings, 
                           plotly.flag=plotly.flag)
     
-    if(save.plot) {
+    if(save.plot) 
+    {
         if(is.null(plot.folder)) {
             stop("Please set a folder where to plot the MA-Plot!")
         }
@@ -41,8 +42,9 @@ PlotHistPvalPlot <- function(de.results, design.matrix,
         }
         
     } 
-    
-    if(show.plot.flag) {
+
+    if(show.plot.flag) 
+    {
         if(plotly.flag) {
             plotly::ggplotly(ggp)
         } else {
@@ -51,6 +53,4 @@ PlotHistPvalPlot <- function(de.results, design.matrix,
     } else {
         return(ggp)
     }
-    
-    
 }
