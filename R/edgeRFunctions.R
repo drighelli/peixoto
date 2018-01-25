@@ -66,7 +66,13 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
                                 factors.column=factors.column, contrst=cs,
                                 genes=genes)
         resCMeans <- cbind(ctMeans, resC)
-        resCMeans <- resCMeans[(resCMeans$FDR < p.threshold),]
+        if(p.threshold != 1)
+        {
+            resCMeans <- resCMeans[(resCMeans$FDR < p.threshold),]
+        } else {
+            resCMeans <- resCMeans[(resCMeans$FDR <= p.threshold),]
+        }
+            
 
     })
     names(resClist) <- contrasts
