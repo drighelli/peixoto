@@ -93,7 +93,7 @@ neg.map.nna <- neg.map[-which(is.na(neg.map$entrezgene)),]
 
 # neg.map.nna <- neg.map.nna[which(neg.map.nna$entrezgene %in%  rownames(normPropCountsUqua)),]
 # 
-neg.ctrls.entrez <- neg.map.nna$entrezgene
+neg.ctrls.entrez <- as.character(neg.map.nna$entrezgene)
 
 ind.ctrls <- which(rownames(normPropCountsUqua) %in% neg.ctrls.entrez)
 counts.neg.ctrls <- normPropCountsUqua[ind.ctrls,]
@@ -108,6 +108,7 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 
 ###Upper Quartile + RUVs Normalization
 
+K=1
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 library(RUVSeq)
 #groups <- makeGroups(designMatrix$classic)[1,,drop=FALSE]
@@ -127,6 +128,45 @@ pal <- RColorBrewer::brewer.pal(9, "Set1")
 plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
 ```
 
+K=3
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+library(RUVSeq)
+#groups <- makeGroups(designMatrix$classic)[1,,drop=FALSE]
+neg.ctrl.list <- as.character(neg.map.nna$entrezgene[which(neg.map.nna$entrezgene %in% rownames(normPropCountsUqua))])
+groups <- makeGroups(paste0(designMatrix$genotype, designMatrix$classic))[c(1, 3),]
+ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
+                       scIdx=groups, k=3)
+
+normExprData <- ruvedSExprData$normalizedCounts
+
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+
+pal <- RColorBrewer::brewer.pal(9, "Set1")
+plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
+```
+
+K=5
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+library(RUVSeq)
+#groups <- makeGroups(designMatrix$classic)[1,,drop=FALSE]
+neg.ctrl.list <- as.character(neg.map.nna$entrezgene[which(neg.map.nna$entrezgene %in% rownames(normPropCountsUqua))])
+groups <- makeGroups(paste0(designMatrix$genotype, designMatrix$classic))[c(1, 3),]
+ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
+                       scIdx=groups, k=5)
+
+normExprData <- ruvedSExprData$normalizedCounts
+
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+
+pal <- RColorBrewer::brewer.pal(9, "Set1")
+plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
+```
 
 ## edgeR DE Analysis
 
@@ -157,7 +197,7 @@ PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat,
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 sd.pos.ctrls <- ReadDataFrameFromTsv(file.name.path="../data/SD_full_pos_control_genes_BMC_genomics.csv")
 
-sd.pos.ctrls <- sd.pos.ctrls$MGI.Symbol
+sd.pos.ctrls <- sd.pos.ctrls$MGI.Symbol###tolower????
 
 sd.pos.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
                     filter.values=sd.pos.ctrls, c("external_gene_name",
@@ -165,7 +205,7 @@ sd.pos.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
 
 sd.pos.map.nna <- sd.pos.map[-which(is.na(sd.pos.map$entrezgene)),]
 
-sd.pos.genes.entrez <- sd.pos.map.nna$entrezgene
+sd.pos.genes.entrez <- as.character(sd.pos.map.nna$entrezgene)
 
 
 ```
@@ -185,8 +225,8 @@ res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
 
 
 PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
-                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05,
-                positive.ctrls.list=sd.pos.genes.entrez)
+                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
+                prefix.plot=names(rescList1)[1], threshold=0.05, positive.ctrls.list=sd.pos.genes.entrez)
 
 
 

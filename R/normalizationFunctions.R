@@ -1,10 +1,22 @@
 
 
-SelectGenesFromHistBreaks <- function(data.counts, breakss = 100, n.genes.per.break=1) {
+#' Title
+#'
+#' @param data.counts 
+#' @param breakss 
+#' @param n.genes.per.break 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+SelectGenesFromHistBreaks <- function(data.counts, breakss=100, 
+                                    n.genes.per.break=1) 
+{
     data.counts.mean <- apply(data.counts, 1, mean)
-    
-    data.counts.mean.filtered <- data.counts.mean[which(data.counts.mean <= summary(data.counts.mean)["3rd Qu."])]
-    h <- hist(data.counts.mean.filtered, breaks = breakss, plot=FALSE)
+    idxc <- which(data.counts.mean <= summary(data.counts.mean)["3rd Qu."])
+    data.counts.mean.filtered <- data.counts.mean[idxc]
+    h <- hist(data.counts.mean.filtered, breaks=breakss, plot=FALSE)
     data.counts.mean.sorted <- sort(data.counts.mean.filtered)
     gene.names <- c()
     j<-1
@@ -22,8 +34,12 @@ SelectGenesFromHistBreaks <- function(data.counts, breakss = 100, n.genes.per.br
     return(gene.names)
 }
 
-EstimateNegativeControlGenesForRUV <- function(de.genes, n.tail.genes=2000, counts.dataset, n.genes.per.hist.break=1, threshold=0.05) {
-    de.genes.tail <- TailDeGenesByPAdj(de.genes = de.genes, n.genes = n.tail.genes, threshold = threshold)
+EstimateNegativeControlGenesForRUV <- function(de.genes, n.tail.genes=2000,
+                                            counts.dataset,
+                                            n.genes.per.hist.break=1,
+                                            threshold=0.05) 
+{
+    de.genes.tail <- TailDeGenesByPAdj(de.genes=de.genes, n.genes=n.tail.genes, threshold=threshold)
     counts.tail <- counts.dataset[which(rownames(counts.dataset) %in% de.genes.tail),]
     estimated.genes <- SelectGenesFromHistBreaks(counts.tail, n.genes.per.break=n.genes.per.hist.break)
     return(estimated.genes)
@@ -69,7 +85,7 @@ RUVgNormalizationFunction <- function(data.to.normalize,
     return(ruved.set)
 }
 
-NormalizeData <- function(data.to.normalize, norm.type = c("fqua", "uqua", "tmm", "ruvg"), design.matrix=NULL, design.matrix.factors.column=NULL, estimated.genes=NULL, is.log=FALSE) {
+NormalizeData <- function(data.to.normalize, norm.type=c("fqua", "uqua", "tmm", "ruvg"), design.matrix=NULL, design.matrix.factors.column=NULL, estimated.genes=NULL, is.log=FALSE) {
     ## @ norm.type can be uqua, tmm, fqua or ruvg
     
     x <- data.to.normalize
@@ -89,7 +105,7 @@ NormalizeData <- function(data.to.normalize, norm.type = c("fqua", "uqua", "tmm"
             }
         } else {
             require("edgeR")
-            x <- edgeR::DGEList(counts = x)
+            x <- edgeR::DGEList(counts=x)
             if(norm.type=="uqua") {
                 x <- edgeR::calcNormFactors(x, method='upperquartile')
             } 
@@ -119,9 +135,9 @@ SortDeGenesByPAdj <- function(de.genes) {
     if("baseMean" %in% colnames(de.genes)) { ## working on DESeq results
         ordered.de.genes <- de.genes[order(de.genes$padj),]
     } else if("theta" %in% colnames(de.genes)) { ## noiseqbio
-        ordered.de.genes <- de.genes[order(de.genes$prob, decreasing = TRUE),]
+        ordered.de.genes <- de.genes[order(de.genes$prob, decreasing=TRUE),]
     } else if("M" %in% colnames(de.genes)) { ## noiseq
-        ordered.de.genes <- de.genes[order(de.genes$prob, decreasing = TRUE),]
+        ordered.de.genes <- de.genes[order(de.genes$prob, decreasing=TRUE),]
     } else {
         stop("In SortDeGenesByPAdj not recognized de results table!")
     }
@@ -132,7 +148,10 @@ SortDeGenesByPAdj <- function(de.genes) {
 
 FilterOutGenesNAPAdj <- function(de.genes) {
     if("baseMean" %in% colnames(de.genes)) { ## working on DESeq results
-        if(sum(is.na(de.genes$padj))>0) de.genes.not.na <- de.genes[-which(is.na(de.genes$padj)),]
+        if(sum(is.na(de.genes$padj))>0)
+        {
+            de.genes.not.na <- de.genes[-which(is.na(de.genes$padj)),]
+        }
         else de.genes.not.na <- de.genes
     } else {
         de.genes.not.na <- de.genes
@@ -146,7 +165,7 @@ FilterOutGenesNAPAdj <- function(de.genes) {
 
 
 TailDeGenesByPAdj <- function(de.genes, n.genes=10, threshold=0.05) {
-    ord.de.genes <- SortDeGenesByPAdj(de.genes = de.genes)
+    ord.de.genes <- SortDeGenesByPAdj(de.genes=de.genes)
     ord.de.genes.not.na <- FilterOutGenesNAPAdj(ord.de.genes)
     if("baseMean" %in% colnames(de.genes)) { ## working on DESeq results
         ord.not.de.genes <- ord.de.genes.not.na[ ord.de.genes.not.na$padj >= threshold,]

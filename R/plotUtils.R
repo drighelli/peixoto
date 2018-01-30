@@ -90,3 +90,32 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
 
     return(de.results.new)
 }
+
+
+GeneratePlotStrings <- function(path=NULL, prefix, plot.type) {
+    title <- gsub(pattern = "_", replacement = " ", x = UpdatePrefix(prefix, plot.type))
+    
+    plot.folder <- gsub(pattern = " ", replacement = "_", x = file.path(path, plot.type))
+    
+    plot.file.name <- gsub(pattern = " ", replacement = "_", x = UpdatePrefix(prefix, plot.type))
+    if(!is.null(path)) dir.create(plot.folder, showWarnings = FALSE, recursive = TRUE)
+    
+    return(list("title"= title, "plot.folder"=plot.folder, "plot.file.name"=plot.file.name))
+}
+
+
+UpdatePrefix <- function(prefix, ...) {
+    # new.prefix <- paste(prefix, postix, sep=sep)
+    dots <- list(...)
+    if( length(dots) != 0 ) {
+        for (str in dots) {
+            # str <- gsub(pattern = ".", replacement = "_", str)
+            prefix <- paste(prefix, str, sep = " " )
+        }
+        
+    } else {
+        stop("provide a string to append to ", new.prefix)
+    }
+    return(prefix)
+}
+

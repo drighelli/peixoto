@@ -142,7 +142,14 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 # plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 
 #### estimating neg controls
+ 
 cc <- c("KOSD5 - KOHC5", "KORS2 - KOHC7", "WTSD5 - WTHC5", "WTRS2 - WTHC7")
+
+# counts=normPropCountsUqua; design.matrix=designMatrix;
+# factors.column="gcondition"; 
+# weight.columns=NULL;
+# contrasts=cc; useIntercept=FALSE; p.threshold=1;
+# verbose=TRUE
 
 rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=designMatrix,
                         factors.column="gcondition", 

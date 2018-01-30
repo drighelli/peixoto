@@ -10,10 +10,10 @@ designMatrix <- ReadDataFrameFromTsv(file.name.path="design/all_samples_short_na
 head(designMatrix)
 
 
-# filteredCountsProp <- filterLowCounts(counts.dataframe=countMatrix, is.normalized=FALSE,
-#                                     design.dataframe=designMatrix,
-#                                     cond.col.name="gcondition",
-#                                     method.type="Proportion")
+filteredCountsProp <- filterLowCounts(counts.dataframe=countMatrix, is.normalized=FALSE,
+                                    design.dataframe=designMatrix,
+                                    cond.col.name="gcondition",
+                                    method.type="Proportion")
 # head(filteredCountsProp) #14531
 # dim(filteredCountsProp)
 
@@ -70,12 +70,12 @@ plotly::ggplotly(g)
 # plotly::ggplotly(gr)
 # 
 # ## uqua + ruv
-# ruvedExprData <- RUVgNormalizationFunction(data.to.normalize=round(normPropCountsUqua),
-#                                            design.matrix=designMatrix,
-#                                            desMatColStr="gcondition",
-#                                            estimated.gene.names=neg.ctrls.est,
-#                                            k=1,
-#                                            isLog=FALSE)
+ruvedExprData <- RUVgNormalizationFunction(data.to.normalize=round(normPropCountsUqua),
+                                           design.matrix=designMatrix,
+                                           desMatColStr="gcondition",
+                                           estimated.gene.names=neg.ctrls.entrez,
+                                           k=1,
+                                           isLog=FALSE)
 # 
 # ruv.counts <- ruvedExprData@assayData$normalizedCounts
 # 

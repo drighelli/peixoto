@@ -1,4 +1,20 @@
 
+#' Title
+#'
+#' @param counts.dataframe 
+#' @param is.normalized 
+#' @param design.dataframe 
+#' @param cond.col.name 
+#' @param method.type 
+#' @param cv.percentage 
+#' @param cpm.cutoff 
+#' @param seq.depth 
+#' @param verbose 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 filterLowCounts <- function(counts.dataframe, is.normalized = c(TRUE, FALSE),
                             design.dataframe, cond.col.name=NULL,  
                             method.type = c("CPM", "Wilcoxon", "Proportion"), 

@@ -111,6 +111,22 @@ GenerateGGMA <- function(processed.de.results, strings, plotly.flag=FALSE) {
 }
 
 
+#' Title
+#'
+#' @param de.results 
+#' @param counts.dataframe 
+#' @param design.matrix 
+#' @param show.plot.flag 
+#' @param plotly.flag 
+#' @param save.plot 
+#' @param plot.folder 
+#' @param prefix.plot 
+#' @param threshold 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 PlotMAPlotCounts <- function(de.results, counts.dataframe, design.matrix, 
                             show.plot.flag=TRUE, plotly.flag=FALSE, 
                             save.plot=FALSE, plot.folder=NULL, 

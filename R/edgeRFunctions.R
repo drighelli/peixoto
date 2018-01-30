@@ -48,12 +48,16 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
         }
         colnames(design) <- c(as.character(unique(factors)))
     }
-
+    # counts=counts; factors=factors; design=design;
+    # verbose=verbose
     fit <- applyEdgeRFit(counts=counts, factors=factors, design=design,
                         verbose=verbose)
 
     resClist <- lapply(contrasts, function(c)
     {
+        # contrast=c; design=design;
+        # fit=fit; p.threshold=p.threshold;
+        # verbose=verbose
         resC <- applyEdgeRContrast(contrast=c, design=design,
                                     fit=fit, p.threshold=p.threshold,
                                     verbose=verbose)
@@ -80,6 +84,18 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
     return(resClist)
 }
 
+#' Title
+#'
+#' @param counts 
+#' @param design.matrix 
+#' @param factors.column 
+#' @param contrst 
+#' @param genes 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 computeMeans <- function(counts, design.matrix, factors.column, contrst, genes)
 {
     design.factors <- design.matrix[, factors.column, drop=FALSE]
@@ -101,6 +117,17 @@ computeMeans <- function(counts, design.matrix, factors.column, contrst, genes)
     return(contrMeans)
 }
 
+#' Title
+#'
+#' @param counts 
+#' @param factors 
+#' @param design 
+#' @param verbose 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 applyEdgeRFit <- function(counts, factors, design, verbose=FALSE)
 {
     if(verbose) message("Fitting edgeR model")

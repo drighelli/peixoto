@@ -45,6 +45,11 @@ convertGenesViaBiomart <- function(specie=c("hg38", "mm10", "rnor6"),
         }
         gene.map <- gene.map[order(gene.map[[filter]]),]
     }
+    idx.entr <- grep(pattern="entrezgene", x=colnames(gene.map))
+    if(length(idx.entr) > 0 )
+    {
+        gene.map[,idx.entr] <- as.character(gene.map[,idx.entr])
+    }
     
     return(gene.map)
 }
@@ -58,24 +63,26 @@ attachGeneColumnToDf <- function(mainDf, genesMap,
     stopifnot(!is.null(mapFromIdentifier))
     stopifnot(!is.null(mapToIdentifier))
     
-    if(rowNamesIdentifier=="entrezgene") 
-    {
-        rownames <- as.integer(rownames(mainDf)) ## if rownames == entrezid
-    } else {
-        rownames <- rownames(mainDf)
-    }
+    mainDf <- mainDf[order(rownames(mainDf)),]
+    rownames <- rownames(mainDf)
     
+    mainDf$check <- NA
     mainDf$gene <- NA
+    
+    genesMap <- genesMap[order(genesMap[[mapFromIdentifier]]),]
+    
     idx.re <- which(rownames %in% genesMap[[mapFromIdentifier]])
     idx.er <- which(genesMap[[mapFromIdentifier]] %in% rownames)
     
+    mainDf$check[idx.re] <- genesMap[[mapFromIdentifier]][idx.er]
     mainDf$gene[idx.re] <- genesMap[[mapToIdentifier]][idx.er]
-    noNaMainDf <- mainDf
-    idx.na <- which(is.na(mainDf$gene))
-    if(length(idx.na) > 0) noNaMainDf <- mainDf[-idx.na,]
-    idx.e <- which(noNaMainDf$gene == "")
-    if(length(idx.e) > 0) noNaMainDf <- noNaMainDf[-idx.e,]
-    # noNaMainDf$genes[duplicated(noNaMainDf$genes)]
-    return(noNaMainDf)
+    ## removing NA (not mapped) lines
+    # noNaMainDf <- mainDf
+    # idx.na <- which(is.na(mainDf$gene))
+    # if(length(idx.na) > 0) noNaMainDf <- mainDf[-idx.na,]
+    # idx.e <- which(noNaMainDf$gene == "")
+    # if(length(idx.e) > 0) noNaMainDf <- noNaMainDf[-idx.e,]
+    # return(noNaMainDf)
+    return(mainDf)
     
 }
