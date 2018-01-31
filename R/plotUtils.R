@@ -75,17 +75,19 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new$method <- rep(x="edgeR", times=dim(de.results.new)[1])
         
         de.results.new$gene <- de.results$gene
+        
         if(!is.null(pos.ctrls.list))
         {
-            de.results.new$posc <- "pos-ctrl"
+            de.results.new$posc <- NA
                 
-            de.results.new <- de.results.new[order(rownames(de.results.new)),]
-            pos.ctrls.list <- pos.ctrls.list[order(pos.ctrls.list)]
-            idx.pos <- which(rownames(de.results.new) %in% pos.ctrls.list)
+            # de.results.new <- de.results.new[order(rownames(de.results.new)),]
+            # pos.ctrls.list <- pos.ctrls.list[order(pos.ctrls.list)]
+            idx.pos <- which(tolower(de.results.new$gene) %in% 
+                                tolower(pos.ctrls.list))
+            print(length(idx.pos))
             if(length(idx.pos)!=0) 
             {
-                 
-                de.results.new$posc[idx] <- "pos-ctrl"
+                de.results.new$posc[idx.pos] <- "pos-ctrl"
             } else {
                 warning("no positive controls found!")
             }

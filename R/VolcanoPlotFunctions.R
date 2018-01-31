@@ -63,12 +63,35 @@ GenerateGGVolcano <- function(processed.de.results, strings, plotly.flag) {
                          padj=format(padj, nsmall=10),
                         name=gene), size=0.7) + 
                  labs(list(title=strings$title, x=xlabl, y=ylabl)) #+
-            if(length(unique(processed.de.results$significance)) == 2)
-            {
-                ggp <- ggp + scale_color_manual(values=c("blue2", "red2"))#, "orange2", "orange2"))
-            } else {
-                ggp <- ggp + scale_color_manual(values=c("blue2", "green2", "red2"))#, "orange2", "orange2"))
-            }
+            
+            
+            
+            # if(length(unique(processed.de.results$significance)) == 2)
+            # {
+                #, "orange2", "orange2"))
+                
+                idx.posc <- which(colnames(processed.de.results) %in% "posc")
+                if( length(idx.posc) > 0 )
+                {
+                    idx.pc <- which(processed.de.results$posc == "pos-ctrl")
+                    pos.data <- processed.de.results[idx.pc,]
+                    ggp <- ggp + 
+                        geom_point(data=pos.data, aes(x=log2FoldChange, 
+                                y=minuslog10pval, padj=format(padj, nsmall=10),
+                                name=gene), shape=1,
+                                 size=5, color="green2")
+                    
+                    # ggp <- ggp + 
+                    #     scale_color_manual(
+                    #         values=c("blue2", "red2", "green2"))
+                }
+                ggp <- ggp + scale_color_manual(values=c("blue2", "red2"))
+                # } else {
+                #     ggp <- ggp + scale_color_manual(values=c("blue2", "red2"))
+                # }
+            # } else {
+            #     ggp <- ggp + scale_color_manual(values=c("blue2", "green2", "red2"))#, "orange2", "orange2"))
+            # }
                 
             
             # if(!plotly.flag) {

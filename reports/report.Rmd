@@ -152,7 +152,7 @@ colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
 cc <- c("WTSD5 - WTHC5", "WTRS2 - WTHC7")
 
-rescList1 <- applyEdgeR(counts=normExprData, design.matrix=desMat,
+rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=desMat,
                         factors.column="gcondition", 
                         weight.columns=c("W_1", "W_2", "W_3", "W_4"),
                         contrasts=cc, useIntercept=FALSE, p.threshold=1,
@@ -172,34 +172,35 @@ PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat,
 sd.pos.ctrls <- ReadDataFrameFromTsv(file.name.path="../data/SD_full_pos_control_genes_BMC_genomics.csv")
 
 sd.pos.ctrls <- sd.pos.ctrls$MGI.Symbol
-
-sd.pos.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
-                    filter.values=sd.pos.ctrls, c("external_gene_name",
-                                "mgi_symbol", "entrezgene"))
-
-sd.pos.map.nna <- sd.pos.map[-which(is.na(sd.pos.map$entrezgene)),]
-
-sd.pos.genes.entrez <- as.character(sd.pos.map.nna$entrezgene)
-
-
+sd.pos.ctrls <- sd.pos.ctrls[-which(is.na(sd.pos.ctrls))]
+# 
+# sd.pos.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
+#                     filter.values=sd.pos.ctrls, c("external_gene_name",
+#                                 "mgi_symbol", "entrezgene"))
+# 
+# sd.pos.map.nna <- sd.pos.map[-which(is.na(sd.pos.map$entrezgene)),]
+# 
+# sd.pos.genes.entrez <- as.character(sd.pos.map.nna$entrezgene)
 ```
 
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
-# res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
-#                             filter.values=rownames(rescList1[[1]]), 
-#                             c("external_gene_name", "mgi_symbol", "entrezgene"))
+res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(rescList1[[1]]),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
 
 
 res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
-                                genesMap=sd.pos.map,
+                                genesMap=res.o.map,
                                 rowNamesIdentifier="entrezgene",
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
 
-PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
+PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, 
+                design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
-                prefix.plot=names(rescList1)[1], threshold=0.05, positive.ctrls.list=sd.pos.genes.entrez)
+                prefix.plot=names(rescList1)[1], threshold=0.05, 
+                positive.ctrls.list=sd.pos.ctrls)
 
 
 
@@ -220,34 +221,36 @@ PlotHistPvalPlot(de.results=rescList1[[2]], design.matrix=desMat,
 rs2.pos.ctrls <- ReadDataFrameFromTsv(file.name.path="../data/RS2_pos_control_genes_BMC_genomics.csv")
 
 rs2.pos.ctrls <- rs2.pos.ctrls$MGI.Symbol
+rs2.pos.ctrls <- rs2.pos.ctrls[-(which(is.na(rs2.pos.ctrls)))]
+# rs2.pos.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
+#                     filter.values=rs2.pos.ctrls, c("external_gene_name",
+#                                 "mgi_symbol", "entrezgene"))
+# 
+# rs2.pos.map.nna <- rs2.pos.map[-which(is.na(rs2.pos.map$entrezgene)),]
 
-rs2.pos.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
-                    filter.values=rs2.pos.ctrls, c("external_gene_name",
-                                "mgi_symbol", "entrezgene"))
-
-rs2.pos.map.nna <- rs2.pos.map[-which(is.na(rs2.pos.map$entrezgene)),]
-
-rs2.pos.genes.entrez <- rs2.pos.map.nna$entrezgene
+# rs2.pos.genes.entrez <- rs2.pos.map.nna$entrezgene
 
 
 ```
 
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
-# res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
-#                             filter.values=rownames(rescList1[[2]]), 
-#                             c("external_gene_name", "mgi_symbol", "entrezgene"))
+res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(rescList1[[2]]),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
 
 
 res.rs2.o <- attachGeneColumnToDf(mainDf=rescList1[[2]],
-                                genesMap=rs2.pos.map,
+                                genesMap=rs2.pos.map.nna,
                                 rowNamesIdentifier="entrezgene",
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
 
 
-PlotVolcanoPlot(de.results=res.rs2.o, counts.dataframe=normExprData, design.matrix=desMat,
-                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05, 
-                positive.ctrls.list=rs2.pos.genes.entrez)
+PlotVolcanoPlot(de.results=res.rs2.o, counts.dataframe=normExprData, 
+                design.matrix=desMat,
+                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
+                prefix.plot=names(rescList1)[2], threshold=0.05, 
+                positive.ctrls.list=rs2.pos.ctrls)
 # PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
                  # show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05)
 ```
