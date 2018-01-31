@@ -38,9 +38,11 @@ convertGenesViaBiomart <- function(specie=c("hg38", "mm10", "rnor6"),
     # attrs <- c("ensembl_gene_id", "external_gene_name", "entrezgene")
     gene.map <- biomaRt::getBM(attributes=attrs, mart=mart, 
                                filters=filter, values=filter.values)
-    if(!is.null(filter)){
+    if(!is.null(filter))
+    {
         idx.dp <- which(duplicated(gene.map[[filter]]))
-        if(length(idx.dp) > 0 ) {
+        if(length(idx.dp) > 0 ) 
+        {
             gene.map <- gene.map[-idx.dp,]
         }
         gene.map <- gene.map[order(gene.map[[filter]]),]

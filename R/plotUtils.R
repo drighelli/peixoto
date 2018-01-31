@@ -76,6 +76,8 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new$gene <- de.results$gene
         if(!is.null(pos.ctrls.list))
         {
+            de.results.new <- de.results.new[order(rownames(de.results.new)),]
+            pos.ctrls.list <- pos.ctrls.list[order(pos.ctrls.list)]
             idx.pos <- which(rownames(de.results.new) %in% pos.ctrls.list)
             if(length(idx.pos)!=0) 
             {

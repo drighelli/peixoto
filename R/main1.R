@@ -10,9 +10,9 @@ library(RUVSeq)
 ###Importing data
 
 # firstcountMatrix <- ReadDataFrameFromTsv(file.name.path="data/PFC_counts.txt")
-# dim(firstcountMatrix)
-secondcountMatrix <- ReadDataFrameFromTsv(file.name.path="data/NEW_PFCmatrix.txt")
-dim(secondcountMatrix)
+# # dim(firstcountMatrix)
+# secondcountMatrix <- ReadDataFrameFromTsv(file.name.path="data/NEW_PFCmatrix.txt")
+# dim(secondcountMatrix)
 
 refSeqCountMatrix <- ReadDataFrameFromTsv(file.name.path="data/refSEQ_countMatrix.txt")
 
