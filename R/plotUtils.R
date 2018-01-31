@@ -70,9 +70,10 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new$significance <- "not-sign"
         idx <- which(de.results.new$FDR < threshold)
         de.results.new$significance[idx] <- "sign"
-        de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
+        # de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
         de.results.new$minuslog10PAdj <- (-1) * log10(de.results.new$FDR)
         de.results.new$method <- rep(x="edgeR", times=dim(de.results.new)[1])
+        
         de.results.new$gene <- de.results$gene
         if(!is.null(pos.ctrls.list))
         {
