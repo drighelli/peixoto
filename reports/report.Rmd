@@ -190,6 +190,9 @@ res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
                             c("external_gene_name", "mgi_symbol", "entrezgene"))
 
 
+WriteDataFrameAsTsv(data.frame.to.save=rescList1[[1]], 
+                    file.name.path=paste0(names(rescList1)[1], "edgeR"))
+
 res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
                                 genesMap=res.o.map,
                                 rowNamesIdentifier="entrezgene",
@@ -234,13 +237,15 @@ rs2.pos.ctrls <- rs2.pos.ctrls[-(which(is.na(rs2.pos.ctrls)))]
 ```
 
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
-res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+rs2.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
                             filter.values=rownames(rescList1[[2]]),
                             c("external_gene_name", "mgi_symbol", "entrezgene"))
 
+WriteDataFrameAsTsv(data.frame.to.save=rescList1[[2]], 
+                    file.name.path=paste0(names(rescList1)[2], "edgeR"))
 
 res.rs2.o <- attachGeneColumnToDf(mainDf=rescList1[[2]],
-                                genesMap=rs2.pos.map.nna,
+                                genesMap=rs2.o.map,
                                 rowNamesIdentifier="entrezgene",
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
