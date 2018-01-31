@@ -48,16 +48,13 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
         }
         colnames(design) <- c(as.character(unique(factors)))
     }
-    # counts=counts; factors=factors; design=design;
-    # verbose=verbose
+    
     fit <- applyEdgeRFit(counts=counts, factors=factors, design=design,
                         verbose=verbose)
 
     resClist <- lapply(contrasts, function(c)
     {
-        # contrast=c; design=design;
-        # fit=fit; p.threshold=p.threshold;
-        # verbose=verbose
+        
         resC <- applyEdgeRContrast(contrast=c, design=design,
                                     fit=fit, p.threshold=p.threshold,
                                     verbose=verbose)

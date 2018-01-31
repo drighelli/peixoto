@@ -107,7 +107,7 @@ normPropCountsUqua.neg <- attachGeneColumnToDf(mainDf=normPropCountsUqua,
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
 
-normPropCountsUqua.neg[which(!is.na(normPropCountsUqua.neg$check)),]
+# normPropCountsUqua.neg[which(!is.na(normPropCountsUqua.neg$check)),]
 ind.ctrls <- which(rownames(normPropCountsUqua) %in% neg.ctrls.entrez)
 counts.neg.ctrls <- normPropCountsUqua[ind.ctrls,]
 pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
@@ -179,16 +179,16 @@ sd.pos.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
 
 sd.pos.map.nna <- sd.pos.map[-which(is.na(sd.pos.map$entrezgene)),]
 
-# sd.pos.genes.entrez <- as.character(sd.pos.map.nna$entrezgene)
+sd.pos.genes.entrez <- as.character(sd.pos.map.nna$entrezgene)
 
 
 ```
 
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
-res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
-                            filter.values=rownames(rescList1[[1]]), 
-                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+# res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+#                             filter.values=rownames(rescList1[[1]]), 
+#                             c("external_gene_name", "mgi_symbol", "entrezgene"))
 
 
 res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
@@ -196,10 +196,6 @@ res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
                                 rowNamesIdentifier="entrezgene",
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
-# 
- # de.results=res.o; counts.dataframe=normExprData; design.matrix=desMat;
-                 # show.plot.flag=TRUE; plotly.flag=TRUE; save.plot=FALSE; 
-#                 prefix.plot=names(rescList1)[1]; threshold=0.05; positive.ctrls.list=sd.pos.genes.entrez)
 
 PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
@@ -237,19 +233,19 @@ rs2.pos.genes.entrez <- rs2.pos.map.nna$entrezgene
 ```
 
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
-res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
-                            filter.values=rownames(rescList1[[2]]), 
-                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+# res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+#                             filter.values=rownames(rescList1[[2]]), 
+#                             c("external_gene_name", "mgi_symbol", "entrezgene"))
 
 
-res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
-                                genesMap=res.o.map,
+res.rs2.o <- attachGeneColumnToDf(mainDf=rescList1[[2]],
+                                genesMap=rs2.pos.map,
                                 rowNamesIdentifier="entrezgene",
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
 
 
-PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
+PlotVolcanoPlot(de.results=res.rs2.o, counts.dataframe=normExprData, design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05, 
                 positive.ctrls.list=rs2.pos.genes.entrez)
 # PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
