@@ -79,7 +79,7 @@ GenerateGGVolcano <- function(processed.de.results, strings, plotly.flag) {
                         geom_point(data=pos.data, aes(x=log2FoldChange, 
                                 y=minuslog10pval, padj=format(padj, nsmall=10),
                                 name=gene), shape=1,
-                                 size=5, color="green2")
+                                 size=3, color="green2")
                     
                     # ggp <- ggp + 
                     #     scale_color_manual(
