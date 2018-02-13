@@ -50,7 +50,7 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
     }
     
     fit <- applyEdgeRFit(counts=counts, factors=factors, design=design,
-                        verbose=verbose)
+                            verbose=verbose)
 
     resClist <- lapply(contrasts, function(c)
     {

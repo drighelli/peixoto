@@ -19,14 +19,20 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
     ## check colnames design matrix
     # require("ggfortify")
     # require("plotly")
-    strings <- GeneratePlotStrings(path=plot.folder, prefix=prefix.plot, plot.type="PCA")
-    sub.counts.dataframe <- counts.data.frame[ , which(colnames(counts.data.frame) %in% rownames(design.matrix)), drop=FALSE]
+    strings <- GeneratePlotStrings(path=plot.folder, prefix=prefix.plot, 
+                                plot.type="PCA")
+    sub.counts.dataframe <- counts.data.frame[ , 
+                which(colnames(counts.data.frame) %in% rownames(design.matrix)), 
+                drop=FALSE]
     PCA <- prcomp(t(sub.counts.dataframe), scale.=scale, center=TRUE)
-
+    propvar <- summary(PCA)$importance[2,,drop=FALSE]
+    xproppca <- paste0(as.character( propvar[,xPCA]*100 ),"%")
+    yproppca <- paste0(as.character( propvar[,yPCA]*100 ),"%")
     sub.pca <- as.data.frame(PCA$x[,c(xPCA, yPCA)])
     sub.pca$samples <- rownames(sub.pca)
     sub.pca <- sub.pca[order(sub.pca$samples), ]
-    design.matrix.o <- design.matrix[order(rownames(design.matrix)), , drop=FALSE]
+    design.matrix.o <- design.matrix[order(rownames(design.matrix)), , 
+                                    drop=FALSE]
 
     if(dim(sub.pca)[1] == dim(design.matrix.o)[1])
     {
@@ -35,7 +41,7 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
     else
     {
         sub.design.matrix <- subset(design.matrix.o,
-                                    rownames(design.matrix.o) %in% rownames(sub.pca))
+                            rownames(design.matrix.o) %in% rownames(sub.pca))
         new.sub.pca <- cbind(sub.pca, sub.design.matrix)
     }
 
@@ -46,8 +52,11 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
                                   scale=scale,
                                   shapeColname=shapeColname,
                                   colorColname=colorColname,
-                                  plot.folder=plot.folder, prefix.plot=prefix.plot,
+                                  plot.folder=plot.folder, 
+                                  prefix.plot=prefix.plot,
                                   show.plot.flag=show.plot.flag,
+                                  xPCA=xPCA,
+                                  yPCA=yPCA,
                                   plotly.flag=plotly.flag, save.plot=save.plot,
                                   ellipse.flag=FALSE,
                                   size=size)
@@ -56,9 +65,13 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
                                   scale=scale,
                                   shapeColname=shapeColname,
                                   colorColname=colorColname,
-                                  plot.folder=plot.folder, prefix.plot=prefix.plot,
+                                  plot.folder=plot.folder, 
+                                  prefix.plot=prefix.plot,
                                   show.plot.flag=show.plot.flag,
-                                  plotly.flag=plotly.flag, save.plot=save.plot,
+                                  xPCA=xPCA,
+                                  yPCA=yPCA,
+                                  plotly.flag=plotly.flag, 
+                                  save.plot=save.plot,
                                   ellipse.flag=TRUE,
                                   size=size)
         return(list("noEllipse"=noEllipse, "ellipse"=ellipse))
@@ -67,32 +80,45 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
     {
         if(length(which(colnames(new.sub.pca) %in% colorColname)) >0 )
         {
-            aesStrObj <- ggplot2::aes_string(x=xPCA, y=yPCA, color=colorColname,
-                                    shape=shapeColname, name="samples")
-            aesStrObjEll <- ggplot2::aes_string(x=xPCA, y=yPCA, color=shapeColname)
+            setcolname <- colorColname
+            # aesStrObj <- ggplot2::aes_string(x=xPCA, y=yPCA, color=colorColname,
+            #                         shape=shapeColname, name="samples")
+            # aesStrObjEll <- ggplot2::aes_string(x=xPCA, y=yPCA, color=shapeColname)
         }
         else
         {
-            aesStrObj <- ggplot2::aes_string(x=xPCA, y=yPCA, color=shapeColname,
-                                    shape=shapeColname, name="samples")
-            aesStrObjEll <- ggplot2::aes_string(x=xPCA, y=yPCA, color=shapeColname)
+            setcolname <- shapeColname
+            # aesStrObj <- ggplot2::aes_string(x=xPCA, y=yPCA, color=shapeColname,
+            #                         shape=shapeColname, name="samples")
+            # aesStrObjEll <- ggplot2::aes_string(x=xPCA, y=yPCA, color=shapeColname)
         }
-        ggp <- ggplot2::ggplot(new.sub.pca) + ggplot2::geom_point(aesStrObj, size=size) +
-            ggplot2::stat_ellipse(aesStrObjEll) + ggplot2::ggtitle(strings$title) +
-            ggplot2::xlab(xPCA) + ggplot2::ylab(yPCA)
+        
+        aesStrObj <- ggplot2::aes_string(x=xPCA, y=yPCA, color=setcolname,
+                                         shape=shapeColname, name="samples")
+        aesStrObjEll <- ggplot2::aes_string(x=xPCA, y=yPCA, color=shapeColname)
+        
+        ggp <- ggplot2::ggplot(new.sub.pca) + 
+            ggplot2::geom_point(aesStrObj, size=size) +
+            ggplot2::stat_ellipse(aesStrObjEll) + 
+            ggplot2::ggtitle(strings$title) +
+            ggplot2::xlab(paste(xPCA, xproppca)) + 
+            ggplot2::ylab(paste(yPCA, yproppca))
         strings$plot.file.name <- paste0(strings$plot.file.name, "_ellipse")
     }
     else if(!ellipse.flag)
     {
-        if( sum(colnames(new.sub.pca) %in% colorColname) > 0 ) {
+        # if( sum(colnames(new.sub.pca) %in% colorColname) > 0 ) {
+        #     aesStrObj <- ggplot2::aes_string(x=xPCA, y=yPCA, color=colorColname,
+        #                             shape=shapeColname, name="samples")
+        # } else {
             aesStrObj <- ggplot2::aes_string(x=xPCA, y=yPCA, color=colorColname,
                                     shape=shapeColname, name="samples")
-        } else {
-            aesStrObj <- ggplot2::aes_string(x=xPCA, y=yPCA, color=colorColname,
-                                    shape=shapeColname, name="samples")
-        }
-        ggp <- ggplot2::ggplot(new.sub.pca) + ggplot2::geom_point(aesStrObj, size=size) +
-            ggplot2::ggtitle(strings$title) + ggplot2::xlab(xPCA) + ggplot2::ylab(yPCA)
+        # }
+        ggp <- ggplot2::ggplot(new.sub.pca) + 
+            ggplot2::geom_point(aesStrObj, size=size) +
+            ggplot2::ggtitle(strings$title) + 
+            ggplot2::xlab(paste(xPCA, xproppca)) + 
+            ggplot2::ylab(paste(yPCA, yproppca))
     }
 
 

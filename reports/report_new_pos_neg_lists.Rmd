@@ -52,9 +52,9 @@ filteredCountsProp <- filterLowCounts(counts.dataframe=noNaCountMatrix,
 ##Plot PCA of log unnormalized data
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
 plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 ```
 
@@ -68,9 +68,9 @@ normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp,
                                     norm.type="uqua", 
                                     design.matrix=designMatrix)
 
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
 plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 
 
@@ -136,9 +136,9 @@ neg.ctrls.entrez <- as.character(neg.map.nna$entrezgene)
 # normPropCountsUqua.neg[which(!is.na(normPropCountsUqua.neg$check)),]
 ind.ctrls <- which(rownames(normPropCountsUqua) %in% neg.ctrls.entrez)
 counts.neg.ctrls <- normPropCountsUqua[ind.ctrls,]
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
 plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 ```
 
@@ -159,9 +159,9 @@ ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
 
 normExprData <- ruvedSExprData$normalizedCounts
 
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="classic", colorColname="gcondition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
 plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 
 pal <- RColorBrewer::brewer.pal(9, "Set1")
@@ -411,6 +411,9 @@ ddetable <- rbind(ddetable, detable)
 
 # PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
 #                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
+```
+### DE TABLE
+```{r}
 ddetable
 ```
 
@@ -467,8 +470,73 @@ de <- sum(res.o$FDR < 0.05)
 nde <- sum(res.o$FDR >= 0.05)
 detable <- cbind(de,nde)
 rownames(detable) <- names(rescList1)[1]
-detable
+
  # PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
  #                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
 
 ```
+
+#### All controls DE TABLE
+```{r}
+ddetable
+```
+
+
+## interaction analysis
+```{r}
+
+mat <- designMatrix
+cond <- as.character(mat$condition)
+cond[grep("^HC", cond)] <- "HC"
+cond <- factor(cond, levels = c("HC", "SD5", "RS2"))
+geno <- relevel(mat$genotype, ref = "WT")
+interactionMatrix <- model.matrix(~geno*cond)
+
+counts <- normExprData
+dgel <- edgeR::DGEList(counts=counts, group=cond)
+edisp <- edgeR::estimateDisp(y=dgel, design=interactionMatrix)
+fit <- edgeR::glmQLFit(edisp, interactionMatrix, robust=TRUE)
+```
+
+
+```{r}
+
+colnames(fit)
+lrtkosd5 <- edgeR::glmLRT(fit, coef=5)
+top <- topTags(lrtkosd5, n=Inf)
+res <- top$table
+# sum(top$table$FDR<0.05)
+# dim(top$table)
+
+
+res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(res),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+
+
+# WriteDataFrameAsTsv(data.frame.to.save=rescList1[[1]], 
+#                     file.name.path=paste0(names(rescList1)[1], "_edgeR"))
+
+res.o <- attachGeneColumnToDf(mainDf=res,
+                                genesMap=res.o.map,
+                                rowNamesIdentifier="entrezgene",
+                                mapFromIdentifier="entrezgene",
+                                mapToIdentifier="external_gene_name")
+
+PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, 
+                design.matrix=designMatrix,
+                show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
+                prefix.plot="SD5", threshold=0.05, 
+                positive.ctrls.list=NULL)
+
+```
+
+
+```{r}
+
+lrtkors2 <- edgeR::glmLRT(fit, coef=6)
+top <- topTags(lrtkors2, n=Inf)
+sum(top$table$FDR<0.05)
+dim(top$table)
+```
+

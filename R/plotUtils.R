@@ -58,7 +58,7 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new$method <- rep(x="NOISeq", times=dim(de.results.new)[1])
         de.results.new$gene <- rownames(de.results.new)
         de.results.new <- de.results.new[order(de.results.new$prob, decreasing=TRUE),]
-    }else if("F" %in% colnames(de.results.new)) { ## working on edgeR results
+    } else if ("F" %in% colnames(de.results.new)) { ## working on edgeR results
         
         de.results.new <- de.results.new[, c(1:3, 6:7)]
         de.results.new$padj <- de.results.new$FDR
@@ -66,7 +66,7 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new$log2FoldChange <- de.results.new$logFC
         de.results.new$log10FoldChange <- log10( (de.results.new[,1]/de.results.new[,2]))
         de.results.new$minuslog10pval <- -log10(de.results.new$PValue)
-        de.results.new$log2Counts <- (1/2) * log2((de.results.new[,1] * de.results.new[,2]))
+        # de.results.new$log2Counts <- (1/2) * log2((de.results.new[,1] * de.results.new[,2]))
         de.results.new$significance <- "not-sign"
         idx <- which(de.results.new$FDR < threshold)
         de.results.new$significance[idx] <- "sign"
@@ -84,6 +84,41 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
             # pos.ctrls.list <- pos.ctrls.list[order(pos.ctrls.list)]
             idx.pos <- which(tolower(de.results.new$gene) %in% 
                                 tolower(pos.ctrls.list))
+            print(length(idx.pos))
+            if(length(idx.pos)!=0) 
+            {
+                de.results.new$posc[idx.pos] <- "pos-ctrl"
+            } else {
+                warning("no positive controls found!")
+            }
+        }
+    } else if ("LR" %in% colnames(de.results.new)) { ## working on edgeR results
+        
+        de.results.new <- de.results.new[, c(1,4:7)]
+        de.results.new$padj <- de.results.new$FDR
+        de.results.new$pval <- de.results.new$PValue
+        de.results.new$log2FoldChange <- de.results.new$logFC
+        fc <- 2^(de.results.new$logFC)
+        de.results.new$log10FoldChange <- log10(fc)
+        de.results.new$minuslog10pval <- -log10(de.results.new$PValue)
+        # de.results.new$log2Counts <- (1/2) * log2((de.results.new[,1] * de.results.new[,2]))
+        de.results.new$significance <- "not-sign"
+        idx <- which(de.results.new$FDR < threshold)
+        de.results.new$significance[idx] <- "sign"
+        # de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
+        de.results.new$minuslog10PAdj <- (-1) * log10(de.results.new$FDR)
+        de.results.new$method <- rep(x="edgeR", times=dim(de.results.new)[1])
+        
+        de.results.new$gene <- de.results$gene
+        
+        if(!is.null(pos.ctrls.list))
+        {
+            de.results.new$posc <- NA
+            
+            # de.results.new <- de.results.new[order(rownames(de.results.new)),]
+            # pos.ctrls.list <- pos.ctrls.list[order(pos.ctrls.list)]
+            idx.pos <- which(tolower(de.results.new$gene) %in% 
+                                 tolower(pos.ctrls.list))
             print(length(idx.pos))
             if(length(idx.pos)!=0) 
             {
