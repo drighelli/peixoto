@@ -482,7 +482,7 @@ ddetable
 ```
 
 
-## interaction analysis
+## interaction analysis 
 ```{r}
 
 mat <- designMatrix
@@ -498,7 +498,7 @@ edisp <- edgeR::estimateDisp(y=dgel, design=interactionMatrix)
 fit <- edgeR::glmQLFit(edisp, interactionMatrix, robust=TRUE)
 ```
 
-
+    
 ```{r}
 
 colnames(fit)
