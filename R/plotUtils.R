@@ -1,6 +1,6 @@
 
 #########################
-ProcessDEResultsForPlot <- function(de.results, threshold, 
+ProcessDEResultsForPlot <- function(de.results, threshold=0.05, 
                                     counts.dataframe=NULL, design.matrix=NULL,
                                     pos.ctrls.list=NULL) 
 {
@@ -61,15 +61,15 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
     } else if ("F" %in% colnames(de.results.new)) { ## working on edgeR results
         
         de.results.new <- de.results.new[, c(1:3, 6:7)]
-        de.results.new$padj <- de.results.new$FDR
+        de.results.new$padj <- format(round(de.results.new$FDR, 7), nsmall=7)
         de.results.new$pval <- de.results.new$PValue
         de.results.new$log2FoldChange <- de.results.new$logFC
         de.results.new$log10FoldChange <- log10( (de.results.new[,1]/de.results.new[,2]))
         de.results.new$minuslog10pval <- -log10(de.results.new$PValue)
         # de.results.new$log2Counts <- (1/2) * log2((de.results.new[,1] * de.results.new[,2]))
-        de.results.new$significance <- "not-sign"
+        de.results.new$significance <- paste("padj >=", threshold)
         idx <- which(de.results.new$FDR < threshold)
-        de.results.new$significance[idx] <- "sign"
+        de.results.new$significance[idx] <- paste("padj <", threshold)
         # de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
         de.results.new$minuslog10PAdj <- (-1) * log10(de.results.new$FDR)
         de.results.new$method <- rep(x="edgeR", times=dim(de.results.new)[1])
@@ -102,9 +102,9 @@ ProcessDEResultsForPlot <- function(de.results, threshold,
         de.results.new$log10FoldChange <- log10(fc)
         de.results.new$minuslog10pval <- -log10(de.results.new$PValue)
         # de.results.new$log2Counts <- (1/2) * log2((de.results.new[,1] * de.results.new[,2]))
-        de.results.new$significance <- "not-sign"
+        de.results.new$significance <- paste("padj >=", threshold)
         idx <- which(de.results.new$FDR < threshold)
-        de.results.new$significance[idx] <- "sign"
+        de.results.new$significance[idx] <- paste("padj <", threshold)
         # de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
         de.results.new$minuslog10PAdj <- (-1) * log10(de.results.new$FDR)
         de.results.new$method <- rep(x="edgeR", times=dim(de.results.new)[1])

@@ -77,15 +77,16 @@ GenerateGGVolcano <- function(processed.de.results, strings, plotly.flag) {
                     pos.data <- processed.de.results[idx.pc,]
                     ggp <- ggp + 
                         geom_point(data=pos.data, aes(x=log2FoldChange, 
-                                y=minuslog10pval, padj=format(padj, nsmall=10),
-                                name=gene), shape=1,
-                                 size=3, color="green2")
+                                y=minuslog10pval, 
+                                text=paste0("padj=", padj,
+                                "name=", gene)), shape=1,
+                                 size=3, color="green2") 
                     
                     # ggp <- ggp + 
                     #     scale_color_manual(
                     #         values=c("blue2", "red2", "green2"))
                 }
-                ggp <- ggp + scale_color_manual(values=c("blue2", "red2"))
+                ggp <- ggp + scale_color_manual(values=c( "red2", "blue2"))
                 # } else {
                 #     ggp <- ggp + scale_color_manual(values=c("blue2", "red2"))
                 # }
@@ -160,5 +161,5 @@ PlotVolcanoPlot <- function(de.results,
             plot(ggp)
         }
     }
-    # return(ggp)
+    return(ggp)
 }

@@ -58,12 +58,15 @@ convertGenesViaBiomart <- function(specie=c("hg38", "mm10", "rnor6"),
 
 
 attachGeneColumnToDf <- function(mainDf, genesMap, 
-                                 rowNamesIdentifier=c("entrezgene", "ensembl", "symbol"),
+                                 rowNamesIdentifier=c("entrezgene", 
+                                                    "ensembl", 
+                                                    "symbol"),
                                  mapFromIdentifier=NULL, mapToIdentifier=NULL)
 {
     match.arg(rowNamesIdentifier)
     stopifnot(!is.null(mapFromIdentifier))
     stopifnot(!is.null(mapToIdentifier))
+    
     
     mainDf <- mainDf[order(rownames(mainDf)),]
     rownames <- rownames(mainDf)

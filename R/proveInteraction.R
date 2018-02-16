@@ -47,8 +47,8 @@ sd.neg.ctrls <- sd.neg.ctrls$`MGI Symbol`
 sd.neg.ctrls <- sd.neg.ctrls[-which(is.na(sd.neg.ctrls))]
 int.neg.ctrls <- intersect(rs2.neg.ctrls, sd.neg.ctrls)
 neg.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
-                                  filter.values=int.neg.ctrls, c("external_gene_name",
-                                                                 "mgi_symbol", "entrezgene"))
+                        filter.values=int.neg.ctrls, c("external_gene_name",
+                                            "mgi_symbol", "entrezgene"))
 neg.map.nna <- neg.map[-which(is.na(neg.map$entrezgene)),]
 neg.ctrls.entrez <- as.character(neg.map.nna$entrezgene)
 ind.ctrls <- which(rownames(normPropCountsUqua) %in% neg.ctrls.entrez)
@@ -66,18 +66,18 @@ cond <- as.character(mat$condition)
 cond[grep("^HC", cond)] <- "HC"
 cond <- factor(cond, levels = c("HC", "SD5", "RS2"))
 geno <- relevel(mat$genotype, ref = "WT")
-interactionMatrix <- model.matrix(~geno*cond)
+interactionMatrix <- model.matrix(~geno*cond+ruvedSExprData$W)
 
-counts <- normExprData
+counts <- normPropCountsUqua
 dgel <- edgeR::DGEList(counts=counts, group=cond)
 edisp <- edgeR::estimateDisp(y=dgel, design=interactionMatrix)
-fit <- edgeR::glmQLFit(edisp, interactionMatrix, robust=TRUE)
+fit <- edgeR::glmFit(edisp, interactionMatrix, robust=TRUE)
 class(edisp)
 
 
 ## 5 SD5 
 colnames(fit)
-lrtkosd5 <- edgeR::glmLRT(fit, coef=5)
+lrtkosd5 <- edgeR::glmLRT(fit, coef=10)
 top <- topTags(lrtkosd5, n=Inf)
 sum(top$table$FDR<0.05)
 dim(top$table)
@@ -87,8 +87,8 @@ res <- top$table
 
 
 res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
-                                    filter.values=rownames(res),
-                                    c("external_gene_name", "mgi_symbol", "entrezgene"))
+                        filter.values=rownames(res),
+                        c("external_gene_name", "mgi_symbol", "entrezgene"))
 
 
 # WriteDataFrameAsTsv(data.frame.to.save=rescList1[[1]], 

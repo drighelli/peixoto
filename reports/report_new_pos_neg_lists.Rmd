@@ -172,7 +172,7 @@ plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
 
 ```{r}
 ### edgering
-
+padj.thr <- 0.01
 desMat <- cbind(designMatrix, ruvedSExprData$W)
 colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
@@ -186,6 +186,7 @@ rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=desMat,
 ```
 
 ### WTSD5 - WTHC5
+#### pvalue histogram
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat, 
@@ -209,7 +210,7 @@ PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat,
 # 
 # sd.pos.genes.entrez <- as.character(sd.pos.map.nna$entrezgene)
 ```
-
+#### volcano plot
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 sd.pos.ctrls <- sd.pos.ctrls$`MGI Symbol`
@@ -233,11 +234,11 @@ res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
 PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, 
                 design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
-                prefix.plot=names(rescList1)[1], threshold=0.05, 
+                prefix.plot=names(rescList1)[1], threshold=padj.thr, 
                 positive.ctrls.list=sd.pos.ctrls)
 
-de <- sum(res.o$FDR < 0.05)
-nde <- sum(res.o$FDR >= 0.05)
+de <- sum(res.o$FDR < padj.thr)
+nde <- sum(res.o$FDR >= padj.thr)
 detable <- cbind(de,nde)
 rownames(detable) <- names(rescList1)[1]
 ddetable <- detable
@@ -247,6 +248,7 @@ ddetable <- detable
 ```
 
 ### WTRS2 - WTHC7
+#### pvalue histogram
 ```{r}
 PlotHistPvalPlot(de.results=rescList1[[2]], design.matrix=desMat, 
                 show.plot.flag=TRUE, plotly.flag=TRUE, 
@@ -296,7 +298,7 @@ rs2.pos.ctrls <- rs2.pos.ctrls[-which(is.na(rs2.pos.ctrls))]
 
 
 ```
-
+#### volcano plot
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 rs2.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
                             filter.values=rownames(rescList1[[2]]),
@@ -315,10 +317,10 @@ res.rs2.o <- attachGeneColumnToDf(mainDf=rescList1[[2]],
 PlotVolcanoPlot(de.results=res.rs2.o, counts.dataframe=normExprData, 
                 design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
-                prefix.plot=names(rescList1)[2], threshold=0.05, 
+                prefix.plot=names(rescList1)[2], threshold=padj.thr, 
                 positive.ctrls.list=rs2.pos.ctrls)
-de <- sum(res.rs2.o$FDR < 0.05)
-nde <- sum(res.rs2.o$FDR >= 0.05)
+de <- sum(res.rs2.o$FDR < padj.thr)
+nde <- sum(res.rs2.o$FDR >= padj.thr)
 detable <- cbind(de,nde)
 rownames(detable) <- names(rescList1)[2]
 ddetable <- rbind(ddetable, detable)
@@ -328,6 +330,7 @@ ddetable <- rbind(ddetable, detable)
 
 
 ### KOHC5 - WTHC5
+#### pvalue histogram
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[3]], design.matrix=desMat, 
@@ -335,7 +338,7 @@ PlotHistPvalPlot(de.results=rescList1[[3]], design.matrix=desMat,
                 prefix.plot=names(rescList1)[3])
 ```
 
-
+#### volcano plot
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 
@@ -356,11 +359,11 @@ res.o <- attachGeneColumnToDf(mainDf=rescList1[[3]],
 PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, 
                 design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
-                prefix.plot=names(rescList1)[4], threshold=0.05, 
+                prefix.plot=names(rescList1)[4], threshold=padj.thr, 
                 positive.ctrls.list=NULL)
 
-de <- sum(res.o$FDR < 0.05)
-nde <- sum(res.o$FDR >= 0.05)
+de <- sum(res.o$FDR < padj.thr)
+nde <- sum(res.o$FDR >= padj.thr)
 detable <- cbind(de,nde)
 rownames(detable) <- names(rescList1)[3]
 ddetable <- rbind(ddetable, detable)
@@ -372,6 +375,7 @@ ddetable <- rbind(ddetable, detable)
 
 
 ### KOHC7 - WTHC7
+#### pvalue histogram
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[4]], design.matrix=desMat, 
@@ -379,7 +383,7 @@ PlotHistPvalPlot(de.results=rescList1[[4]], design.matrix=desMat,
                 prefix.plot=names(rescList1)[4])
 ```
 
-
+#### volcano plot
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 
@@ -400,11 +404,11 @@ res.o <- attachGeneColumnToDf(mainDf=rescList1[[4]],
 PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, 
                 design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
-                prefix.plot=names(rescList1)[4], threshold=0.05, 
+                prefix.plot=names(rescList1)[4], threshold=padj.thr, 
                 positive.ctrls.list=NULL)
 
-de <- sum(res.o$FDR < 0.05)
-nde <- sum(res.o$FDR >= 0.05)
+de <- sum(res.o$FDR < padj.thr)
+nde <- sum(res.o$FDR >= padj.thr)
 detable <- cbind(de,nde)
 rownames(detable) <- names(rescList1)[4]
 ddetable <- rbind(ddetable, detable)
@@ -435,6 +439,7 @@ rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=newDesMat,
 ```
 
 ### KOCTRL - WTCTRL
+#### pvalue histogram
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat, 
@@ -442,7 +447,7 @@ PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat,
                 prefix.plot=names(rescList1)[1])
 ```
 
-
+#### volcano plot
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 
@@ -463,11 +468,11 @@ res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
 PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, 
                 design.matrix=desMat,
                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
-                prefix.plot=names(rescList1)[1], threshold=0.05, 
+                prefix.plot=names(rescList1)[1], threshold=padj.thr, 
                 positive.ctrls.list=NULL)
 
-de <- sum(res.o$FDR < 0.05)
-nde <- sum(res.o$FDR >= 0.05)
+de <- sum(res.o$FDR < padj.thr)
+nde <- sum(res.o$FDR >= padj.thr)
 detable <- cbind(de,nde)
 rownames(detable) <- names(rescList1)[1]
 
