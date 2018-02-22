@@ -1,0 +1,532 @@
+---
+title: "Report Sleep Deprivation"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+    html_document:
+        fig_height: 9
+        fig_width: 9
+        toc: yes
+        toc_float: yes
+        toc_depth: 4
+        code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE,
+                      fig.width=9, fig.height=9)
+source("../R/reportIncludes.R")
+source("../R/luciaVolcanoFunctions.R")
+library(plotly)
+library(RUVSeq)
+```
+
+# Importing data
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=TRUE}
+countMatrix <- ReadDataFrameFromTsv(file.name.path="../data/refSEQ_countMatrix.txt")
+# head(countMatrix)
+
+designMatrix <- ReadDataFrameFromTsv(file.name.path="../design/all_samples_short_names_noRS2HC7.tsv")
+# head(designMatrix)
+
+rownames <- as.character(rownames(countMatrix))
+
+rownames <- rownames[order(rownames)]
+rownames.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                    filter.values=rownames, attrs=c("external_gene_name",
+                                "mgi_symbol", "entrezgene"))
+
+noNaCountMatrix <- attachGeneColumnToDf(mainDf=countMatrix,
+                                genesMap=rownames.map,
+                                rowNamesIdentifier="entrezgene",
+                                mapFromIdentifier="entrezgene",
+                                mapToIdentifier="external_gene_name")
+
+
+filteredCountsProp <- filterLowCounts(counts.dataframe=noNaCountMatrix, 
+                                    is.normalized=FALSE,
+                                    design.dataframe=designMatrix,
+                                    cond.col.name="gcondition",
+                                    method.type="Proportion")
+```
+
+
+# Plot PCA of log unnormalized data
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
+plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+```
+
+
+# control genes
+
+Loading Negative Control Genes to normalize data
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+#### estimating neg controls
+# options(stringsAsFactors=TRUE)
+library(readxl)
+
+rs2.ctrls <- read_excel(path="../data/controls/Additional File 4 full list of BMC genomics SD&RS2.xlsx", sheet=3)
+rs2.ctrls <- rs2.ctrls[order(rs2.ctrls$adj.P.Val),]
+# ctrls <- read.csv(file="data/controls/sd_controls_NA.csv", header=TRUE, sep="\t", quote="")
+# ctrls <- ctrls[order(ctrls$adj.P.Val, decreasing=TRUE), ]
+# head(rs2.ctrls)
+# tail(rs2.ctrls)
+rs2.neg.ctrls <- rs2.ctrls[rs2.ctrls$adj.P.Val > 0.9, ]
+rs2.neg.ctrls <- rs2.neg.ctrls$`MGI Symbol`
+rs2.neg.ctrls <- rs2.neg.ctrls[-which(is.na(rs2.neg.ctrls))]
+
+
+sd.ctrls <- read_excel(path="../data/controls/Additional File 4 full list of BMC genomics SD&RS2.xlsx", sheet=1)
+sd.ctrls <- sd.ctrls[order(sd.ctrls$adj.P.Val),]
+# ctrls <- read.csv(file="data/controls/sd_controls_NA.csv", header=TRUE, sep="\t", quote="")
+# ctrls <- ctrls[order(ctrls$adj.P.Val, decreasing=TRUE), ]
+# head(sd.ctrls)
+# tail(sd.ctrls)
+
+# sd.pos.ctrls <- sd.ctrls[sd.ctrls$adj.P.Val < 0.01, ]
+# sd.pos.ctrls <- sd.pos.ctrls$`MGI Symbol`
+# sd.pos.ctrls <- sd.pos.ctrls[-which(is.na(sd.pos.ctrls))]
+# ###### LOAD NEW CONTROLS
+
+sd.neg.ctrls <- sd.ctrls[sd.ctrls$adj.P.Val > 0.9, ]
+
+sd.neg.ctrls <- sd.neg.ctrls$`MGI Symbol`
+sd.neg.ctrls <- sd.neg.ctrls[-which(is.na(sd.neg.ctrls))]
+
+# int.neg.ctrls <- union(rs2.neg.ctrls, sd.neg.ctrls)
+int.neg.ctrls <- sd.neg.ctrls
+neg.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
+                    filter.values=int.neg.ctrls, c("external_gene_name",
+                                "mgi_symbol", "entrezgene"))
+
+neg.map.nna <- neg.map[-which(is.na(neg.map$entrezgene)),]
+
+neg.ctrls.entrez <- as.character(neg.map.nna$entrezgene)
+
+ind.ctrls <- which(rownames(filteredCountsProp) %in% neg.ctrls.entrez)
+counts.neg.ctrls <- filteredCountsProp[ind.ctrls,]
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Neg Ctrls not Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Neg Ctrls not Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Neg Ctrls not Norm")
+plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+```
+
+## positive control genes
+
+Positive Control Genes
+
+```{r}
+## sleep deprivation
+sd.lit.pos.ctrls <- read_excel("../data/controls/SD_RS_PosControls_final.xlsx", 
+                        sheet=1)
+colnames(sd.lit.pos.ctrls) <- sd.lit.pos.ctrls[1,]
+sd.lit.pos.ctrls <- sd.lit.pos.ctrls[-1,]
+
+
+sd.est.pos.ctrls <- read_excel("../data/controls/SD_RS_PosControls_final.xlsx", 
+                        sheet=3)
+
+sd.pos.ctrls <- cbind(sd.est.pos.ctrls$`MGI Symbol`, "est")
+sd.pos.ctrls <- rbind(sd.pos.ctrls, cbind(sd.lit.pos.ctrls$Gene, "lit"))
+
+sd.pos.ctrls <- sd.pos.ctrls[-which(duplicated(sd.pos.ctrls[,1])),]
+sd.pos.ctrls <- sd.pos.ctrls[-which(is.na(sd.pos.ctrls[,1])),]
+
+## recovery sleep
+rs.lit.pos.ctrls <- read_excel("../data/controls/SD_RS_PosControls_final.xlsx", 
+                        sheet=2, skip=3)
+
+rs.est.pos.ctrls <- read_excel("../data/controls/SD_RS_PosControls_final.xlsx", 
+                        sheet=4)
+
+rs.pos.ctrls <- cbind(rs.est.pos.ctrls$`MGI Symbol`, "est")
+rs.pos.ctrls <- rbind(rs.pos.ctrls, cbind(rs.lit.pos.ctrls$Gene, "lit"))
+
+rs.pos.ctrls <- rs.pos.ctrls[-which(duplicated(rs.pos.ctrls[,1])),]
+rs.pos.ctrls <- tolower(rs.pos.ctrls[-which(is.na(rs.pos.ctrls[,1])),])
+```
+
+
+# Normalizations
+
+## TMM Normalization
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp, 
+                                    norm.type="tmm", 
+                                    design.matrix=designMatrix)
+
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
+plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+
+
+pal <- RColorBrewer::brewer.pal(9, "Set1")
+plotRLE(as.matrix(normPropCountsUqua), outline=FALSE, col=pal[designMatrix$gcondition])
+
+```
+
+## TMM + RUVs Normalization
+
+K=5
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+library(RUVSeq)
+#groups <- makeGroups(designMatrix$classic)[1,,drop=FALSE]
+neg.ctrl.list <- rownames(counts.neg.ctrls)
+# neg.ctrl.list <- as.character(neg.map.nna$entrezgene[which(neg.map.nna$entrezgene %in% rownames(normPropCountsUqua))])
+groups <- makeGroups(designMatrix$gcondition)
+ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
+                       scIdx=groups, k=5)
+
+normExprData <- ruvedSExprData$normalizedCounts
+
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
+plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+
+pal <- RColorBrewer::brewer.pal(9, "Set1")
+plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
+```
+
+# edgeR DE Analysis
+
+```{r}
+### edgering
+padj.thr <- 0.01
+desMat <- cbind(designMatrix, ruvedSExprData$W)
+colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
+
+cc <- c("WTSD5 - WTHC5", "KOHC5 - WTHC5",
+        "KOSD5 - WTSD5", "KOSD5 - KOHC5")
+
+rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=desMat,
+                        factors.column="gcondition", 
+                        weight.columns=c("W_1", "W_2", "W_3", "W_4", "W_5"),
+                        contrasts=cc, useIntercept=FALSE, p.threshold=1,
+                        verbose=TRUE)
+```
+
+## WTSD5 - WTHC5
+
+### pvalue histogram
+
+```{r}
+
+PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat, 
+                show.plot.flag=TRUE, plotly.flag=TRUE, 
+                prefix.plot=names(rescList1)[1])
+```
+
+### volcano plot
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+## mapping ensembl gene id using biomart
+# sd.pos.ctrls <- sd.pos.ctrls$`MGI Symbol`
+# sd.pos.ctrls <- sd.pos.ctrls[-which(is.na(sd.pos.ctrls))]
+# length(sd.pos.ctrls)
+
+res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(rescList1[[1]]),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+
+
+WriteDataFrameAsTsv(data.frame.to.save=rescList1[[1]], 
+                    file.name.path=paste0(names(rescList1)[1], "edgeR"))
+
+res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
+                                genesMap=res.o.map,
+                                rowNamesIdentifier="entrezgene",
+                                mapFromIdentifier="entrezgene",
+                                mapToIdentifier="external_gene_name")
+
+vp <- luciaVolcanoPlot(res.o, sd.pos.ctrls, prefix=names(rescList1)[1], 
+                    threshold=padj.thr)
+ggplotly(vp)
+
+# vp <- PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, 
+#                 design.matrix=desMat,
+#                 show.plot.flag=FALSE, plotly.flag=FALSE, save.plot=FALSE, 
+#                 prefix.plot=names(rescList1)[1], threshold=padj.thr)#, 
+#                 #positive.ctrls.list=sd.pos.ctrls)
+
+de <- sum(res.o$FDR < padj.thr)
+nde <- sum(res.o$FDR >= padj.thr)
+detable <- cbind(de,nde)
+rownames(detable) <- names(rescList1)[1]
+ddetable <- detable
+
+tot.ctrls <- dim(sd.pos.ctrls)[1]
+idx.pc <- which(tolower(res.o$gene) %in% tolower(sd.pos.ctrls[,1]))
+tot.pc.de <- sum(res.o$FDR[idx.pc] < padj.thr)
+tot.pc.nde <- length(idx.pc) - tot.pc.de
+pos.df <- cbind(tot.ctrls, tot.pc.de, tot.pc.nde)
+colnames(pos.df) <- c("total p.ctrl", "p.ctrl de mapped", 
+                    "p.ctrl not de mapped")
+rownames(pos.df) <- names(rescList1)[1]
+# PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
+#                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
+```
+
+## KOHC5 - WTHC5
+
+### pvalue histogram
+
+```{r}
+PlotHistPvalPlot(de.results=rescList1[[2]], design.matrix=desMat, 
+                show.plot.flag=TRUE, plotly.flag=TRUE, 
+                prefix.plot=names(rescList1)[2])
+```
+
+### volcano plot
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+rs2.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(rescList1[[2]]),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+
+WriteDataFrameAsTsv(data.frame.to.save=rescList1[[2]], 
+                    file.name.path=paste0(names(rescList1)[2], "edgeR"))
+
+res.rs2.o <- attachGeneColumnToDf(mainDf=rescList1[[2]],
+                                genesMap=rs2.o.map,
+                                rowNamesIdentifier="entrezgene",
+                                mapFromIdentifier="entrezgene",
+                                mapToIdentifier="external_gene_name")
+
+vp <- luciaVolcanoPlot(res.rs2.o, positive.controls.df=NULL, 
+                       prefix=names(rescList1)[2], 
+                       threshold=padj.thr)
+ggplotly(vp)
+
+# PlotVolcanoPlot(de.results=res.rs2.o, counts.dataframe=normExprData, 
+#                 design.matrix=desMat,
+#                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
+#                 prefix.plot=names(rescList1)[2], threshold=padj.thr, 
+#                 positive.ctrls.list=rs2.pos.ctrls)
+de <- sum(res.rs2.o$FDR < padj.thr)
+nde <- sum(res.rs2.o$FDR >= padj.thr)
+detable <- cbind(de,nde)
+rownames(detable) <- names(rescList1)[2]
+ddetable <- rbind(ddetable, detable)
+
+# 
+# tot.ctrls <- dim(rs.pos.ctrls)[1]
+# idx.pc <- which(tolower(res.o$gene) %in% tolower(rs.pos.ctrls[,1]))
+# tot.pc.de <- sum(res.o$FDR[idx.pc] < padj.thr)
+# tot.pc.nde <- length(idx.pc) - tot.pc.de
+# pos.dff <- cbind(tot.ctrls, tot.pc.de, tot.pc.nde)
+# rownames(pos.dff) <- names(rescList1)[2]
+# pos.df <- rbind(pos.df, pos.dff)
+# # colnames(pos.df) <- c("total p.ctrl", "p.ctrl de mapped", 
+# #                     "p.ctrl not de mapped")
+
+# PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
+                 # show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[2], threshold=0.05)
+```
+
+
+## KOSD5 - WTSD5
+
+### pvalue histogram
+
+```{r}
+
+PlotHistPvalPlot(de.results=rescList1[[3]], design.matrix=desMat, 
+                show.plot.flag=TRUE, plotly.flag=TRUE, 
+                prefix.plot=names(rescList1)[3])
+```
+
+### volcano plot
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+## mapping ensembl gene id using biomart
+
+res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(rescList1[[3]]),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+
+
+WriteDataFrameAsTsv(data.frame.to.save=rescList1[[3]], 
+                    file.name.path=paste0(names(rescList1)[3], "_edgeR"))
+
+res.o <- attachGeneColumnToDf(mainDf=rescList1[[3]],
+                                genesMap=res.o.map,
+                                rowNamesIdentifier="entrezgene",
+                                mapFromIdentifier="entrezgene",
+                                mapToIdentifier="external_gene_name")
+
+
+vp <- luciaVolcanoPlot(res.o, positive.controls.df=NULL, 
+                        prefix=names(rescList1)[3], threshold=padj.thr)
+ggplotly(vp)
+
+
+de <- sum(res.o$FDR < padj.thr)
+nde <- sum(res.o$FDR >= padj.thr)
+detable <- cbind(de,nde)
+rownames(detable) <- names(rescList1)[3]
+ddetable <- rbind(ddetable, detable)
+
+
+tot.ctrls <- dim(sd.pos.ctrls)[1]
+idx.pc <- which(tolower(res.o$gene) %in% tolower(sd.pos.ctrls[,1]))
+tot.pc.de <- sum(res.o$FDR[idx.pc] < padj.thr)
+tot.pc.nde <- length(idx.pc) - tot.pc.de
+pos.dff <- cbind(tot.ctrls, tot.pc.de, tot.pc.nde)
+rownames(pos.dff) <- names(rescList1)[2]
+pos.df <- rbind(pos.df, pos.dff)
+# PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
+#                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
+
+```
+
+## KOSD5 - WTSD5
+
+### pvalue histogram
+
+```{r}
+
+PlotHistPvalPlot(de.results=rescList1[[4]], design.matrix=desMat, 
+                show.plot.flag=TRUE, plotly.flag=TRUE, 
+                prefix.plot=names(rescList1)[4])
+```
+
+### volcano plot
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+## mapping ensembl gene id using biomart
+
+res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(rescList1[[4]]),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+
+
+WriteDataFrameAsTsv(data.frame.to.save=rescList1[[4]], 
+                    file.name.path=paste0(names(rescList1)[4], "_edgeR"))
+
+res.o <- attachGeneColumnToDf(mainDf=rescList1[[4]],
+                                genesMap=res.o.map,
+                                rowNamesIdentifier="entrezgene",
+                                mapFromIdentifier="entrezgene",
+                                mapToIdentifier="external_gene_name")
+
+
+vp <- luciaVolcanoPlot(res.o, positive.controls.df=sd.pos.ctrls, 
+                        prefix=names(rescList1)[4], threshold=padj.thr)
+ggplotly(vp)
+# 
+# PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, 
+#                 design.matrix=desMat,
+#                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
+#                 prefix.plot=names(rescList1)[4], threshold=padj.thr, 
+#                 positive.ctrls.list=NULL)
+
+de <- sum(res.o$FDR < padj.thr)
+nde <- sum(res.o$FDR >= padj.thr)
+detable <- cbind(de,nde)
+rownames(detable) <- names(rescList1)[4]
+ddetable <- rbind(ddetable, detable)
+
+
+tot.ctrls <- dim(sd.pos.ctrls)[1]
+idx.pc <- which(tolower(res.o$gene) %in% tolower(sd.pos.ctrls[,1]))
+tot.pc.de <- sum(res.o$FDR[idx.pc] < padj.thr)
+tot.pc.nde <- length(idx.pc) - tot.pc.de
+pos.dff <- cbind(tot.ctrls, tot.pc.de, tot.pc.nde)
+rownames(pos.dff) <- names(rescList1)[2]
+pos.df <- rbind(pos.df, pos.dff)
+# PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
+#                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
+```
+
+## DE TABLE + Positive Controls table
+
+```{r}
+ddetable
+pos.df
+```
+
+```{r}
+### edgering
+
+newDesMat <- cbind(desMat, paste0(desMat$genotype, desMat$classic))
+colnames(newDesMat) <- c(colnames(desMat), "genclass")
+
+cc <- c("KOCTRL - WTCTRL")
+
+rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=newDesMat,
+                        factors.column="genclass", 
+                        weight.columns=c("W_1", "W_2", "W_3", "W_4"),
+                        contrasts=cc, useIntercept=FALSE, p.threshold=1,
+                        verbose=TRUE)
+```
+
+## KOCTRL - WTCTRL
+
+### pvalue histogram
+
+```{r}
+
+PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat, 
+                show.plot.flag=TRUE, plotly.flag=TRUE, 
+                prefix.plot=names(rescList1)[1])
+```
+
+### volcano plot
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+## mapping ensembl gene id using biomart
+
+res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(rescList1[[1]]),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+
+
+WriteDataFrameAsTsv(data.frame.to.save=rescList1[[1]], 
+                    file.name.path=paste0(names(rescList1)[1], "_edgeR"))
+
+res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
+                                genesMap=res.o.map,
+                                rowNamesIdentifier="entrezgene",
+                                mapFromIdentifier="entrezgene",
+                                mapToIdentifier="external_gene_name")
+
+
+vp <- luciaVolcanoPlot(res.o, positive.controls.df=NULL, 
+                        prefix=names(rescList1)[1], threshold=padj.thr)
+ggplotly(vp)
+
+# PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData, 
+#                 design.matrix=desMat,
+#                 show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, 
+#                 prefix.plot=names(rescList1)[1], threshold=padj.thr, 
+#                 positive.ctrls.list=NULL)
+
+de <- sum(res.o$FDR < padj.thr)
+nde <- sum(res.o$FDR >= padj.thr)
+detable <- cbind(de,nde)
+rownames(detable) <- names(rescList1)[1]
+ddetable <- rbind(ddetable, detable)
+ # PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
+ #                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
+
+```
+
+## All DE TABLE
+
+```{r}
+ddetable
+```
+
+
