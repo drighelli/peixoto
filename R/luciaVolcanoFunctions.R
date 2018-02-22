@@ -29,7 +29,9 @@ luciaVolcanoPlot <- function(res.o, positive.controls.df, prefix,
     pp <- ggplot(data=without.pos.de) +
         geom_point(aes(x=log2FoldChange, y=minuslog10pval, color=significance, 
                         text=paste0("padj=", padj, "\nname=", gene)), 
-                        size=0.7) 
+                        size=0.7) +
+        scale_color_manual(values=c("red2", "blue2"))
+    
     if(!is.null(positive.controls.df) )
     {
         with.pos.de$hit <- NA
@@ -37,6 +39,7 @@ luciaVolcanoPlot <- function(res.o, positive.controls.df, prefix,
                                 tolower(pos.contr[,1]))] <- "pctr"
         
         sub.de <- with.pos.de[which(with.pos.de$hit=="pctr"),] 
+        sub.de$col <- "pctr"
         sub.de$lit <- "est"
         pos.lit <- pos.contr[pos.contr[,2]=="lit",, drop=FALSE]
         idx.lit <- which(tolower(sub.de$gene) %in% tolower(pos.lit[,1]))
@@ -50,9 +53,10 @@ luciaVolcanoPlot <- function(res.o, positive.controls.df, prefix,
         sub.de <- createSignLabelsNumbers(sub.de, "hit")
         pp <- pp + 
             geom_point(data=sub.de, aes(x=log2FoldChange, y=minuslog10pval, 
-                                color=hit, shape=lit, 
+                                shape=hit, color=col,
                                 text=paste0("padj=", padj, "\nname=", gene)), 
-                                size=0.9)
+                                size=0.9) +
+            scale_color_manual(values=c("red2", "blue2", "green3"))
     }
    
     

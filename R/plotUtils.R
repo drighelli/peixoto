@@ -61,7 +61,7 @@ ProcessDEResultsForPlot <- function(de.results, threshold=0.05,
     } else if ("F" %in% colnames(de.results.new)) { ## working on edgeR results
         
         de.results.new <- de.results.new[, c(1:3, 6:7)]
-        de.results.new$padj <- format(round(de.results.new$FDR, 7), nsmall=7)
+        de.results.new$padj <- format(round(de.results.new$FDR, 8), nsmall=8)
         de.results.new$pval <- de.results.new$PValue
         de.results.new$log2FoldChange <- de.results.new$logFC
         de.results.new$log10FoldChange <- log10( (de.results.new[,1]/de.results.new[,2]))
