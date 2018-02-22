@@ -26,7 +26,7 @@ library(RUVSeq)
 countMatrix <- ReadDataFrameFromTsv(file.name.path="../data/refSEQ_countMatrix.txt")
 # head(countMatrix)
 
-designMatrix <- ReadDataFrameFromTsv(file.name.path="../design/all_samples_short_names_noRS2.tsv")
+designMatrix <- ReadDataFrameFromTsv(file.name.path="../design/all_samples_short_names_noRS2HC7.tsv")
 # head(designMatrix)
 
 rownames <- as.character(rownames(countMatrix))
@@ -154,7 +154,7 @@ rs.pos.ctrls <- tolower(rs.pos.ctrls[-which(is.na(rs.pos.ctrls[,1])),])
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 
 normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp, 
-                                    norm.type="uqua", 
+                                    norm.type="tmm", 
                                     design.matrix=designMatrix)
 
 pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
@@ -178,7 +178,7 @@ neg.ctrl.list <- rownames(counts.neg.ctrls)
 print(length(neg.ctrl.list))
 # neg.ctrl.list <- as.character(neg.map.nna$entrezgene[which(neg.map.nna$entrezgene %in% rownames(normPropCountsUqua))])
 #groups <- makeGroups(paste0(designMatrix$genotype, designMatrix$classic))[c(1, 3),]
-groups <- makeGroups(designMatrix$gcondition)[c(1, 3),]
+groups <- makeGroups(designMatrix$gcondition)#[c(1, 3),]
 ```
 
 ###K1

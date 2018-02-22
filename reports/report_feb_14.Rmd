@@ -21,7 +21,9 @@ source("../R/luciaVolcanoFunctions.R")
 library(plotly)
 library(RUVSeq)
 ```
-#Importing data
+
+# Importing data
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=TRUE}
 countMatrix <- ReadDataFrameFromTsv(file.name.path="../data/refSEQ_countMatrix.txt")
 # head(countMatrix)
@@ -51,7 +53,8 @@ filteredCountsProp <- filterLowCounts(counts.dataframe=noNaCountMatrix,
 ```
 
 
-#Plot PCA of log unnormalized data
+# Plot PCA of log unnormalized data
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 
 pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
@@ -62,6 +65,7 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 
 
 # control genes
+
 Loading Negative Control Genes to normalize data
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 #### estimating neg controls
@@ -115,7 +119,9 @@ plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=
 ```
 
 ## positive control genes
+
 Positive Control Genes
+
 ```{r}
 ## sleep deprivation
 sd.lit.pos.ctrls <- read_excel("../data/controls/SD_RS_PosControls_final.xlsx", 
@@ -148,17 +154,19 @@ rs.pos.ctrls <- tolower(rs.pos.ctrls[-which(is.na(rs.pos.ctrls[,1])),])
 ```
 
 
-#Normalizations
-##Upper Quartile Normalization
+# Normalizations
+
+## TMM Normalization
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 
 normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp, 
-                                    norm.type="uqua", 
+                                    norm.type="tmm", 
                                     design.matrix=designMatrix)
 
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA-Norm")
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
 plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 
 
@@ -167,23 +175,24 @@ plotRLE(as.matrix(normPropCountsUqua), outline=FALSE, col=pal[designMatrix$gcond
 
 ```
 
-##Upper Quartile + RUVs Normalization
+## TMM + RUVs Normalization
 
 K=5
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 library(RUVSeq)
 #groups <- makeGroups(designMatrix$classic)[1,,drop=FALSE]
 neg.ctrl.list <- rownames(counts.neg.ctrls)
 # neg.ctrl.list <- as.character(neg.map.nna$entrezgene[which(neg.map.nna$entrezgene %in% rownames(normPropCountsUqua))])
-groups <- makeGroups(paste0(designMatrix$genotype, designMatrix$classic))[c(1, 3),]
+groups <- makeGroups(designMatrix$gcondition)
 ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
                        scIdx=groups, k=5)
 
 normExprData <- ruvedSExprData$normalizedCounts
 
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="UQUA+RUV-Norm")
+pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
+pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
+pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
 plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 
 pal <- RColorBrewer::brewer.pal(9, "Set1")
@@ -199,7 +208,7 @@ desMat <- cbind(designMatrix, ruvedSExprData$W)
 colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
 cc <- c("WTSD5 - WTHC5", "WTRS2 - WTHC7", "KOHC5 - WTHC5", "KOHC7 - WTHC7",
-        "KOSD5 - WTSD5", "KORS2 - WTRS2", "KORS2 - KOHC7", "KOSD5 - KOHC7")
+        "KOSD5 - WTSD5", "KORS2 - WTRS2", "KORS2 - KOHC7", "KOSD5 - KOHC5")
 
 rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=desMat,
                         factors.column="gcondition", 
@@ -209,7 +218,9 @@ rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=desMat,
 ```
 
 ## WTSD5 - WTHC5
+
 ### pvalue histogram
+
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat, 
@@ -218,6 +229,7 @@ PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat,
 ```
 
 ### volcano plot
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 # sd.pos.ctrls <- sd.pos.ctrls$`MGI Symbol`
@@ -267,7 +279,9 @@ rownames(pos.df) <- names(rescList1)[1]
 ```
 
 ## WTRS2 - WTHC7
+
 ### pvalue histogram
+
 ```{r}
 PlotHistPvalPlot(de.results=rescList1[[2]], design.matrix=desMat, 
                 show.plot.flag=TRUE, plotly.flag=TRUE, 
@@ -275,6 +289,7 @@ PlotHistPvalPlot(de.results=rescList1[[2]], design.matrix=desMat,
 ```
 
 ### volcano plot
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 rs2.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
                             filter.values=rownames(rescList1[[2]]),
@@ -321,7 +336,9 @@ pos.df <- rbind(pos.df, pos.dff)
 
 
 ## KOHC5 - WTHC5
+
 ### pvalue histogram
+
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[3]], design.matrix=desMat, 
@@ -330,6 +347,7 @@ PlotHistPvalPlot(de.results=rescList1[[3]], design.matrix=desMat,
 ```
 
 ### volcano plot
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 
@@ -364,7 +382,9 @@ ddetable <- rbind(ddetable, detable)
 ```
 
 ## KOHC7 - WTHC7
+
 ### pvalue histogram
+
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[4]], design.matrix=desMat, 
@@ -373,6 +393,7 @@ PlotHistPvalPlot(de.results=rescList1[[4]], design.matrix=desMat,
 ```
 
 ### volcano plot
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 
@@ -412,7 +433,9 @@ ddetable <- rbind(ddetable, detable)
 ```
 
 ## KOSD5 - WTSD5
+
 ### pvalue histogram
+
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[5]], design.matrix=desMat, 
@@ -421,6 +444,7 @@ PlotHistPvalPlot(de.results=rescList1[[5]], design.matrix=desMat,
 ```
 
 ### volcano plot
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 
@@ -460,7 +484,9 @@ pos.df <- rbind(pos.df, pos.dff)
 ```
 
 ## KORS2 - WTRS2
+
 ### pvalue histogram
+
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[6]], design.matrix=desMat, 
@@ -469,6 +495,7 @@ PlotHistPvalPlot(de.results=rescList1[[6]], design.matrix=desMat,
 ```
 
 ### volcano plot
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 
@@ -508,8 +535,10 @@ pos.df <- rbind(pos.df, pos.dff)
 
 ```
 
-## KORS2 - KOHC5
+## KORS2 - KOHC7
+
 ### pvalue histogram
+
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[7]], design.matrix=desMat, 
@@ -518,6 +547,7 @@ PlotHistPvalPlot(de.results=rescList1[[7]], design.matrix=desMat,
 ```
 
 ### volcano plot
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 # sd.pos.ctrls <- sd.pos.ctrls$`MGI Symbol`
@@ -566,8 +596,10 @@ pos.df <- rbind(pos.df, pos.dff)
 #                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
 ```
 
-## KOSD5 - KOHC7
+## KOSD5 - KOHC5
+
 ### pvalue histogram
+
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[8]], design.matrix=desMat, 
@@ -576,6 +608,7 @@ PlotHistPvalPlot(de.results=rescList1[[8]], design.matrix=desMat,
 ```
 
 ### volcano plot
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 # sd.pos.ctrls <- sd.pos.ctrls$`MGI Symbol`
@@ -625,6 +658,7 @@ pos.df <- rbind(pos.df, pos.dff)
 ```
 
 ## DE TABLE + Positive Controls table
+
 ```{r}
 ddetable
 pos.df
@@ -646,7 +680,9 @@ rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=newDesMat,
 ```
 
 ## KOCTRL - WTCTRL
+
 ### pvalue histogram
+
 ```{r}
 
 PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat, 
@@ -655,6 +691,7 @@ PlotHistPvalPlot(de.results=rescList1[[1]], design.matrix=desMat,
 ```
 
 ### volcano plot
+
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 ## mapping ensembl gene id using biomart
 
@@ -694,6 +731,7 @@ ddetable <- rbind(ddetable, detable)
 ```
 
 ## All DE TABLE
+
 ```{r}
 ddetable
 ```
