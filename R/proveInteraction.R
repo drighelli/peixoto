@@ -62,14 +62,13 @@ normExprData <- ruvedSExprData$normalizedCounts
 #############################
 
 mat <- designMatrix
-cond <- as.character(mat$condition)
-cond[grep("^HC", cond)] <- "HC"
-cond <- factor(cond, levels = c("HC", "SD5", "RS2"))
 geno <- relevel(mat$genotype, ref = "WT")
+cond <- mat$condition
 interactionMatrix <- model.matrix(~geno*cond+ruvedSExprData$W)
 
-counts <- normPropCountsUqua
+counts <- filteredCountsProp
 dgel <- edgeR::DGEList(counts=counts, group=cond)
+dgel <- edgeR::calcNormFactors(dgel)
 edisp <- edgeR::estimateDisp(y=dgel, design=interactionMatrix)
 fit <- edgeR::glmFit(edisp, interactionMatrix, robust=TRUE)
 class(edisp)
@@ -77,9 +76,9 @@ class(edisp)
 
 ## 5 SD5 
 colnames(fit)
-lrtkosd5 <- edgeR::glmLRT(fit, coef=10)
+lrtkosd5 <- edgeR::glmLRT(fit, coef=NCOL(interactionMatrix))
 top <- topTags(lrtkosd5, n=Inf)
-sum(top$table$FDR<0.05)
+sum(top$table$FDR<0.1)
 dim(top$table)
 res <- top$table
 # sum(top$table$FDR<0.05)
