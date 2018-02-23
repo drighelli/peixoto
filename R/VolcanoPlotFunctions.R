@@ -1,7 +1,6 @@
 
 ############ VOLCANO FUNCTIONS
 
-
 GenerateGGVolcano <- function(processed.de.results, strings, plotly.flag) {
     require("ggplot2")
     switch(processed.de.results$method[1],
@@ -48,7 +47,8 @@ GenerateGGVolcano <- function(processed.de.results, strings, plotly.flag) {
                 ggp <- ggp + geom_point(data= subset(processed.de.results, significance=="significative"), aes(x=log2FoldChange, y=minuslog101minuspp, color=significance, ensembl=gene, symbol=symbol, prob=format(prob, nsmall=10)), size=0.7 )
             }
         },
-        edgeR={
+        edgeR=
+        {
             if(plotly.flag) {
                 xlabl <- paste0("log<sub>2</sub>(FC)")
                 ylabl <- paste("-log<sub>10</sub>(PValue)")
@@ -139,27 +139,32 @@ PlotVolcanoPlot <- function(de.results,
     ggp <- GenerateGGVolcano(processed.de.results, strings, plotly.flag)
 
 
-    if(save.plot) {
-        if(is.null(plot.folder)) {
+    if(save.plot) 
+    {
+        if(is.null(plot.folder)) 
+        {
             stop("Please set a folder where to plot the Volcano-Plot!")
         }
-        if(!is.null(strings$plot.file.name)){
+        if(!is.null(strings$plot.file.name))
+        {
             SaveGGplot(ggplot.to.save=ggp, plot.folder=strings$plot.folder, 
                         plot.file.name=strings$plot.file.name, 
                         plotly.flag=plotly.flag)
         } else {
             stop("Please set a name for the Volcano-Plot!")
         }
-
-
     }
 
-    if(show.plot.flag) {
-        if(plotly.flag) {
+    if(show.plot.flag) 
+    {
+        if(plotly.flag) 
+        {
             ggplotly(ggp)
         } else {
             plot(ggp)
         }
+    } else {
+        return(ggp)
     }
-    return(ggp)
+    
 }

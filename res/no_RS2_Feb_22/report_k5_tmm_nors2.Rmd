@@ -90,10 +90,10 @@ neg.ctrls.entrez <- as.character(neg.map.nna$entrezgene)
 
 ind.ctrls <- which(rownames(filteredCountsProp) %in% neg.ctrls.entrez)
 counts.neg.ctrls <- filteredCountsProp[ind.ctrls,]
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Neg Ctrls not Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Neg Ctrls not Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Neg Ctrls not Norm")
-plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+# pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Neg Ctrls not Norm")
+# pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Neg Ctrls not Norm")
+# pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Neg Ctrls not Norm")
+# plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 ```
 
 ## positive control genes
@@ -174,11 +174,11 @@ colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 cc <- c("WTSD5 - WTHC5", "KOHC5 - WTHC5",
         "KOSD5 - WTSD5", "KOSD5 - KOHC5")
 
-rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=desMat,
+rescList1 <- applyEdgeR(counts=filteredCountsProp, design.matrix=desMat,
                         factors.column="gcondition", 
                         weight.columns=c("W_1", "W_2", "W_3", "W_4", "W_5"),
                         contrasts=cc, useIntercept=FALSE, p.threshold=1,
-                        verbose=TRUE)
+                        is.normalized=FALSE, verbose=TRUE)
 ```
 
 ## WTSD5 - WTHC5
@@ -331,7 +331,7 @@ res.o <- attachGeneColumnToDf(mainDf=rescList1[[3]],
                                 mapToIdentifier="external_gene_name")
 
 
-vp <- luciaVolcanoPlot(res.o, positive.controls.df=NULL, 
+vp <- luciaVolcanoPlot(res.o, positive.controls.df=sd.pos.ctrls, 
                         prefix=names(rescList1)[3], threshold=padj.thr)
 ggplotly(vp)
 

@@ -16,7 +16,7 @@
 applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
                        weight.columns=NULL, contrasts=NULL,
                        useIntercept=FALSE, p.threshold=0.05,
-                       verbose=FALSE)
+                       is.normalized=FALSE, verbose=FALSE)
 {
     stopifnot(is.character(factors.column))
     stopifnot(!is.null(contrasts))
@@ -50,7 +50,7 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
     }
     
     fit <- applyEdgeRFit(counts=counts, factors=factors, design=design,
-                            verbose=verbose)
+                        is.normalized=is.normalized, verbose=verbose)
 
     resClist <- lapply(contrasts, function(c)
     {
@@ -120,15 +120,18 @@ computeMeans <- function(counts, design.matrix, factors.column, contrst, genes)
 #' @param factors 
 #' @param design 
 #' @param verbose 
+#' @param is.normalized 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-applyEdgeRFit <- function(counts, factors, design, verbose=FALSE)
-{
+applyEdgeRFit <- function(counts, factors, design, 
+                    is.normalized=FALSE, method="TMM", verbose=FALSE)
+{    
     if(verbose) message("Fitting edgeR model")
     dgel <- edgeR::DGEList(counts=counts, group=factors)
+    if(!is.normalized) dgel <- edgeR::calcNormFactors(dgel, method=method)
     edisp <- edgeR::estimateDisp(y=dgel, design=design)
     fit <- edgeR::glmQLFit(edisp, design, robust=TRUE)
     return(fit)
