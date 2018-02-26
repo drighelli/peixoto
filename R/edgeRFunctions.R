@@ -8,6 +8,8 @@
 #' @param contrasts
 #' @param useIntercept
 #' @param p.threshold use 1 if you want all the results to be returned
+#' @param is.normalized 
+#' @param verbose 
 #'
 #' @return
 #' @export
@@ -15,7 +17,7 @@
 #' @examples
 applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
                        weight.columns=NULL, contrasts=NULL,
-                       useIntercept=FALSE, p.threshold=0.05,
+                       useIntercept=FALSE, p.threshold=1,
                        is.normalized=FALSE, verbose=FALSE)
 {
     stopifnot(is.character(factors.column))
@@ -49,7 +51,7 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
         colnames(design) <- c(as.character(unique(factors)))
     }
     
-    fit <- applyEdgeRFit(counts=counts, factors=factors, design=design,
+    fit <- applyEdgeRQLFit(counts=counts, factors=factors, design=design,
                         is.normalized=is.normalized, verbose=verbose)
 
     resClist <- lapply(contrasts, function(c)
@@ -126,16 +128,41 @@ computeMeans <- function(counts, design.matrix, factors.column, contrst, genes)
 #' @export
 #'
 #' @examples
-applyEdgeRFit <- function(counts, factors, design, 
+applyEdgeRQLFit <- function(counts, factors, design, 
                     is.normalized=FALSE, method="TMM", verbose=FALSE)
 {    
-    if(verbose) message("Fitting edgeR model")
+    if(verbose) message("Fitting edgeR QL model")
     dgel <- edgeR::DGEList(counts=counts, group=factors)
     if(!is.normalized) dgel <- edgeR::calcNormFactors(dgel, method=method)
     edisp <- edgeR::estimateDisp(y=dgel, design=design)
     fit <- edgeR::glmQLFit(edisp, design, robust=TRUE)
     return(fit)
 }
+
+
+#' Title
+#'
+#' @param counts 
+#' @param factors 
+#' @param design 
+#' @param verbose 
+#' @param is.normalized 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+applyEdgeRGLMFit <- function(counts, factors, design, 
+                            is.normalized=FALSE, method="TMM", verbose=FALSE)
+{    
+    if(verbose) message("Fitting edgeR GLM model")
+    dgel <- edgeR::DGEList(counts=counts, group=factors)
+    if(!is.normalized) dgel <- edgeR::calcNormFactors(dgel, method=method)
+    edisp <- edgeR::estimateDisp(y=dgel, design=design)
+    fit <- edgeR::glmFit(edisp, design, robust=TRUE)
+    return(fit)
+}
+
 
 #' Title
 #'
@@ -158,4 +185,116 @@ applyEdgeRContrast <- function(contrast, design, fit, p.threshold=1,
     res <- edgeR::topTags(qlf, n=Inf, p.value=p.threshold)
     all.gen.res <- res$table
     return(all.gen.res)
+}
+
+applyEdgeRLRT <- function(fit, interaction.matrix, interaction.term=NULL,  
+                          p.threshold=1, verbose=FALSE)
+{
+    if(is.null(interaction.term)) 
+    {
+        warning("interaction.term is missing, using last column of",
+                " interaction design!")
+        interaction.term <- colnames(interaction.matrix)[[
+            ncol(interaction.matrix)]]
+    }
+    
+    if(verbose) message("testing ", interaction.term)
+    qlf <- edgeR::glmLRT(fit, coef=interaction.term)
+    res <- edgeR::topTags(qlf, n=Inf, p.value=p.threshold)
+    all.gen.res <- res$table
+    return(all.gen.res)
+}
+
+
+checkColName <- function(colname, colnames) 
+{
+    if(missing(colname)) stop("Please provide a valid column!")
+    if(is.character(colname))
+    {
+        if(sum(colnames %in% colname)==0)
+        {
+            stop("Please provide a valid colname!")
+        }
+    } else {
+        if(colname > length(colnames))
+        {
+            stop("Please provide a valid colname index!")
+        }
+    }
+    return(TRUE)
+}
+
+
+#' constructInteractionMatrix
+#'
+#' @param design.matrix a design matrix of the experiment where each row 
+#' describes a sample
+#' @param genotype.col the column name/index describing the genotype in 
+#' the design matrix
+#' @param genotype.ref an optional character indicating which factor name to 
+#' use as genotype reference 
+#' @param condition.col the column name/index describing the condition in 
+#' the design matrix
+#' @param weight.col optional column name/index describing the weigths in 
+#' the design matrix (see also weigths parameter)
+#' @param weights optional matrix with weights to use in the 
+#' interaction matrix (see also weigth.col parameter)
+#' @param useIntercept 
+#'
+#' @return a design matrix with interaction terms
+#' @export
+#'
+#' @examples
+constructInteractionMatrix <- function(design.matrix, 
+                                       genotype.col, genotype.ref=NULL,
+                                       condition.col, weight.col, weights=NULL,
+                                       useIntercept=TRUE) 
+{
+    if(missing(design.matrix)) stop("Please provide a valid Design Matrix!")
+    if(missing(genotype.col)) stop("Please provide a valid genotype column!")
+    checkColName(genotype.col, colnames(design.matrix))
+    checkColName(condition.col, colnames(design.matrix))
+    
+    if(!is.null(genotype.ref)) 
+    {
+        geno <- relevel(design.matrix[[genotype.col]], ref=genotype.ref)
+    } else {
+        geno <- design.matrix[[genotype.col]]
+    }
+    cond <- design.matrix[[condition.col]]
+    
+    weigths.flag <- TRUE
+    if(is.null(weights))
+    {
+        if(!missing(weight.col)) 
+        {
+            checkColName(weight.col, colnames(design.matrix))
+            weights <- design.matrix[[weight.col]]
+        } else {
+            weigths.flag <- FALSE
+        }
+    } 
+    
+    if(weigths.flag)
+    {
+        if(useIntercept) 
+        {
+            interactionFormula <- "~geno*cond+weights"
+        } else {
+            interactionFormula <- "~0+geno*cond+weights"
+        }
+    } else {
+        if(useIntercept) 
+        {
+            interactionFormula <- "~geno*cond"
+        } else {
+            interactionFormula <- "~0+geno*cond"
+        }
+    }
+    
+    interactionMatrix <- model.matrix(as.formula(interactionFormula))
+        
+    
+    
+    return(interactionMatrix)
 }

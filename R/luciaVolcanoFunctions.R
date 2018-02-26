@@ -35,8 +35,12 @@ luciaVolcanoPlot <- function(res.o, positive.controls.df, prefix,
     if(!is.null(positive.controls.df) )
     {
         with.pos.de$hit <- NA
-        with.pos.de$hit[which(tolower(with.pos.de$gene) %in% 
-                                tolower(pos.contr[,1]))] <- "pctr"
+        idxpc <- which(tolower(with.pos.de$gene) %in% tolower(pos.contr[,1]))
+        if(idxpc > 0) 
+        {
+            with.pos.de$hit[idxpc] <- "pctr"
+        
+            
         
         sub.de <- with.pos.de[which(with.pos.de$hit=="pctr"),] 
         sub.de$col <- "pctr"
@@ -57,6 +61,7 @@ luciaVolcanoPlot <- function(res.o, positive.controls.df, prefix,
                                 text=paste0("padj=", padj, "\nname=", gene)), 
                                 size=0.9) +
             scale_color_manual(values=c("red2", "blue2", "green3"))
+        }
     }
    
     

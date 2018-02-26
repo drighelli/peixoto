@@ -6,7 +6,7 @@ library(RUVSeq)
 countMatrix <- ReadDataFrameFromTsv(file.name.path="data/refSEQ_countMatrix.txt")
 # head(countMatrix)
 
-designMatrix <- ReadDataFrameFromTsv(file.name.path="design/all_samples_short_names.tsv.csv")
+designMatrix <- ReadDataFrameFromTsv(file.name.path="design/all_samples_short_names_noRS2HC7.tsv")
 head(designMatrix)
 
 rownames <- as.character(rownames(countMatrix))
@@ -30,7 +30,7 @@ filteredCountsProp <- filterLowCounts(counts.dataframe=noNaCountMatrix,
                                       method.type="Proportion")
 
 normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp, 
-                                    norm.type="uqua", 
+                                    norm.type="tmm", 
                                     design.matrix=designMatrix)
 
 library(readxl)
@@ -61,19 +61,33 @@ ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
 normExprData <- ruvedSExprData$normalizedCounts
 #############################
 
-mat <- designMatrix
-geno <- relevel(mat$genotype, ref = "WT")
-cond <- mat$condition
-interactionMatrix <- model.matrix(~geno*cond+ruvedSExprData$W)
+interactionMatrixNew <- constructInteractionMatrix(design.matrix=designMatrix, 
+                                                   genotype.col="genotype",
+                                                   genotype.ref="WT",
+                                                   condition.col="condition",
+                                                   weights=ruvedSExprData$W)
+# 
+# mat <- designMatrix
+# geno <- relevel(mat$genotype, ref="WT")
+# cond <- mat$condition
+# interactionMatrix <- model.matrix(~0+geno*cond+ruvedSExprData$W)
+cond <- designMatrix[["condition"]]
 
-counts <- filteredCountsProp
-dgel <- edgeR::DGEList(counts=counts, group=cond)
-dgel <- edgeR::calcNormFactors(dgel)
-edisp <- edgeR::estimateDisp(y=dgel, design=interactionMatrix)
-fit <- edgeR::glmFit(edisp, interactionMatrix, robust=TRUE)
-class(edisp)
+fit <- applyEdgeRGLMFit(counts=filteredCountsProp, factors=cond, 
+            design=interactionMatrixNew, is.normalized=FALSE, method="TMM",
+            verbose=TRUE)
+
+# counts <- filteredCountsProp
+# dgel <- edgeR::DGEList(counts=counts, group=cond)
+# dgel <- edgeR::calcNormFactors(dgel)
+# edisp <- edgeR::estimateDisp(y=dgel, design=interactionMatrix)
+# fit1 <- edgeR::glmFit(edisp, interactionMatrix, robust=TRUE)
+# class(edisp)
 
 
+lrt <- applyEdgeRLRT(fit=fit, interaction.matrix=interactionMatrixNew, 
+                    verbose=TRUE)
+sum(lrt$FDR<0.01)
 ## 5 SD5 
 colnames(fit)
 lrtkosd5 <- edgeR::glmLRT(fit, coef=NCOL(interactionMatrix))
