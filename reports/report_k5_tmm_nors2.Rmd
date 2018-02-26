@@ -421,18 +421,46 @@ ddetable
 pos.df
 ```
 
+
+## Interaction model
+
+Modeling interaction term to understand differences between Knock out and 
+Wild Type in Sleed Deprivation condition.
+
 ```{r}
-### edgering
+interactionMatrix <- constructInteractionMatrix(design.matrix=designMatrix, 
+                                                   genotype.col="genotype",
+                                                   genotype.ref="WT",
+                                                   condition.col="condition",
+                                                   weights=ruvedSExprData$W)
+cond <- designMatrix[["condition"]]
 
-newDesMat <- cbind(desMat, paste0(desMat$genotype, desMat$classic))
-colnames(newDesMat) <- c(colnames(desMat), "genclass")
+fit <- applyEdgeRGLMFit(counts=filteredCountsProp, factors=cond, 
+            design=interactionMatrix, is.normalized=FALSE, method="TMM",
+            verbose=FALSE)
 
-cc <- c("KOCTRL - WTCTRL")
+lrt <- applyEdgeRLRT(fit=fit, interaction.matrix=interactionMatrix, 
+                    interaction.term="genoKO:condSD5", verbose=FALSE)
 
-rescList1 <- applyEdgeR(counts=normPropCountsUqua, design.matrix=newDesMat,
-                        factors.column="genclass", 
-                        weight.columns=c("W_1", "W_2", "W_3", "W_4"),
-                        contrasts=cc, useIntercept=FALSE, p.threshold=1,
-                        verbose=TRUE)
+
+res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(lrt),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+
+
+WriteDataFrameAsTsv(data.frame.to.save=lrt, 
+                    file.name.path=paste0("SD5_interaction_matrix", "_edgeR"))
+
+res.o <- attachGeneColumnToDf(mainDf=lrt,
+                                genesMap=res.o.map,
+                                rowNamesIdentifier="entrezgene",
+                                mapFromIdentifier="entrezgene",
+                                mapToIdentifier="external_gene_name")
+
+
+vp <- luciaVolcanoPlot(res.o, positive.controls.df=sd.pos.ctrls, 
+                        prefix="SD5 Interaction", threshold=0.05)
+ggplotly(vp)
+
 ```
 
