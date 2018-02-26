@@ -144,3 +144,53 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
 }
 
 
+
+PlotCountsAlongTimes <- function(normalized.counts, design.matrix, 
+                                 gene.name, gene.name.column.name="gene.names", 
+                                 show.plot.flag=TRUE, plotly.flag=FALSE, 
+                                 save.plot=FALSE, plot.folder=NULL, 
+                                 prefix.plot="Counts Plot")
+{
+    
+    strings <- GeneratePlotStrings(path=plot.folder, 
+                                   prefix=prefix.plot, 
+                                   plot.type="CountsTimePlot")
+    
+    sub.normalized.counts <- normalized.counts[,
+                which(colnames(normalized.counts) %in% rownames(design.matrix))]
+    sub.normalized.counts[,gene.name.column.name] <- normalized.counts[,gene.name.column.name]
+    
+    gene.name.norm.counts <- sub.normalized.counts[which(tolower(sub.normalized.counts[,gene.name.column.name]) %in% tolower(gene.name)), ]
+    
+    gene.name.norm.counts <- gene.name.norm.counts[, which(colnames(gene.name.norm.counts) %in% rownames(design.matrix))]
+    
+    if(dim(gene.name.norm.counts)[1] == 1) {
+        processed.counts.df <- ProcessCountDataFrameForPlotCountsAcrossTimes(gene.name.norm.counts, design.matrix, gene.name)
+    } else if(dim(gene.name.norm.counts)[1] == 0) {
+        stop(gene.name, " gene Not Found!")
+    } else if(dim(gene.name.norm.counts)[1] > 1) {
+        stop(gene.name, " founded in more than one row!")
+    }
+    require("plotly")
+    ggp <- ggplot(processed.counts.df, mapping=aes(x=Times, y=Counts, color=Conditions, group=Conditions)) + geom_point() + stat_smooth(se=FALSE, method="loess") + scale_y_log10() + ggtitle(paste( strings$title, gene.name, "gene", sep=" "))
+    
+    if(save.plot) {
+        if(is.null(strings$plot.folder)) {
+            stop("Please set a folder where to plot the boxplot!")
+        }
+        if(!is.null(strings$plot.file.name)){
+            SaveGGplot(ggplot.to.save=ggp, plot.folder=strings$plot.folder, plot.file.name=paste(strings$plot.file.name, gene.name, sep="_"), plotly.flag=plotly.flag)
+        }
+        
+    } 
+    
+    if(show.plot.flag) {
+        if(plotly.flag) {
+            ggplotly(ggp)
+        } else {
+            plot(ggp)
+        }
+    }
+    
+}
+
