@@ -1,7 +1,7 @@
 
 
 
-gene.name.normalized.counts <- counts
+gene.name.normalized.counts <- normPropCountsUqua
 design.matrix <- designMatrix
 
 
@@ -27,9 +27,9 @@ wtcounts <- gene.name.norm.counts.t[gene.name.norm.counts.t$genotype == "WT",]
 
 pp <- ggplot(gene.name.norm.counts.t, mapping=aes(x=condition, y=Counts, color=genotype)) + 
     geom_point() + 
-    stat_smooth(  method = "auto", se=FALSE, fullrange=FALSE) +
+    stat_smooth(aes(x=as.numeric(as.factor(condition)), y=Counts, color=genotype),  method = "lm", se=FALSE, fullrange=FALSE) +
+    facet_grid(.~genotype) +
     ggtitle(paste( "Profile of", gene.name, "gene", sep=" "))
 
-
 pp
-ggplotly(pp)
+ggplotly(pp) 
