@@ -139,8 +139,10 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
         } else {
             plot(ggp)
         }
+    } else {
+        return(ggp)
     }
-    return(ggp)
+    
 }
 
 

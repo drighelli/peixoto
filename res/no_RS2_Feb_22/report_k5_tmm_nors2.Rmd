@@ -15,7 +15,7 @@ editor_options:
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE,
-                      fig.width=9, fig.height=9)
+                      fig.width=9, fig.height=9, cache=TRUE)
 source("../R/reportIncludes.R")
 source("../R/luciaVolcanoFunctions.R")
 library(plotly)
@@ -56,11 +56,11 @@ filteredCountsProp <- filterLowCounts(counts.dataframe=noNaCountMatrix,
 # Plot PCA of log unnormalized data
 
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
-
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
-plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="condition", colorColname="genotype", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=TRUE, prefix.plot="Prop-Un-Norm")
+# pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
+# pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
+# pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="Prop-Un-Norm")
+# plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 ```
 
 
@@ -130,10 +130,12 @@ normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp,
                                     norm.type="tmm", 
                                     design.matrix=designMatrix)
 
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
-plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="condition", colorColname="genotype", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=TRUE, prefix.plot="TMM-Norm")
+
+# pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
+# pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
+# pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM-Norm")
+# plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 
 
 pal <- RColorBrewer::brewer.pal(9, "Set1")
@@ -154,10 +156,12 @@ ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
 
 normExprData <- ruvedSExprData$normalizedCounts
 
-pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
-pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
-pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
-plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="condition", colorColname="genotype", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=TRUE, prefix.plot="TMM+RUV-Norm")
+
+# pc1_2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
+# pc2_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC2", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
+# pc1_3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC3", plotly.flag=TRUE, show.plot.flag=FALSE, prefix.plot="TMM+RUV-Norm")
+# plotly::subplot(pc1_2, pc2_3, pc1_3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
 
 pal <- RColorBrewer::brewer.pal(9, "Set1")
 plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
@@ -167,7 +171,7 @@ plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
 
 ```{r}
 ### edgering
-padj.thr <- 0.01
+padj.thr <- 0.05
 desMat <- cbind(designMatrix, ruvedSExprData$W)
 colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
@@ -204,15 +208,14 @@ res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
                             filter.values=rownames(rescList1[[1]]),
                             c("external_gene_name", "mgi_symbol", "entrezgene"))
 
-
-WriteDataFrameAsTsv(data.frame.to.save=rescList1[[1]], 
-                    file.name.path=paste0(names(rescList1)[1], "edgeR"))
-
 res.o <- attachGeneColumnToDf(mainDf=rescList1[[1]],
                                 genesMap=res.o.map,
                                 rowNamesIdentifier="entrezgene",
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
+
+WriteDataFrameAsTsv(data.frame.to.save=res.o, 
+                    file.name.path=paste0(names(rescList1)[1], "_edgeR"))
 
 vp <- luciaVolcanoPlot(res.o, sd.pos.ctrls, prefix=names(rescList1)[1], 
                     threshold=padj.thr)
@@ -235,8 +238,8 @@ idx.pc <- which(tolower(res.o$gene) %in% tolower(sd.pos.ctrls[,1]))
 tot.pc.de <- sum(res.o$FDR[idx.pc] < padj.thr)
 tot.pc.nde <- length(idx.pc) - tot.pc.de
 pos.df <- cbind(tot.ctrls, tot.pc.de, tot.pc.nde)
-colnames(pos.df) <- c("total p.ctrl", "p.ctrl de mapped", 
-                    "p.ctrl not de mapped")
+colnames(pos.df) <- c("total_p.ctrl", "p.ctrl_de_mapped", 
+                    "p.ctrl_notde_mapped")
 rownames(pos.df) <- names(rescList1)[1]
 # PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
 #                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
@@ -259,14 +262,14 @@ rs2.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
                             filter.values=rownames(rescList1[[2]]),
                             c("external_gene_name", "mgi_symbol", "entrezgene"))
 
-WriteDataFrameAsTsv(data.frame.to.save=rescList1[[2]], 
-                    file.name.path=paste0(names(rescList1)[2], "edgeR"))
-
 res.rs2.o <- attachGeneColumnToDf(mainDf=rescList1[[2]],
                                 genesMap=rs2.o.map,
                                 rowNamesIdentifier="entrezgene",
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
+
+WriteDataFrameAsTsv(data.frame.to.save=res.rs2.o, 
+                    file.name.path=paste0(names(rescList1)[2], "_edgeR"))
 
 vp <- luciaVolcanoPlot(res.rs2.o, positive.controls.df=NULL, 
                        prefix=names(rescList1)[2], 
@@ -320,16 +323,14 @@ res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
                             filter.values=rownames(rescList1[[3]]),
                             c("external_gene_name", "mgi_symbol", "entrezgene"))
 
-
-WriteDataFrameAsTsv(data.frame.to.save=rescList1[[3]], 
-                    file.name.path=paste0(names(rescList1)[3], "_edgeR"))
-
 res.o <- attachGeneColumnToDf(mainDf=rescList1[[3]],
                                 genesMap=res.o.map,
                                 rowNamesIdentifier="entrezgene",
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
 
+WriteDataFrameAsTsv(data.frame.to.save=res.o, 
+                    file.name.path=paste0(names(rescList1)[3], "_edgeR"))
 
 vp <- luciaVolcanoPlot(res.o, positive.controls.df=sd.pos.ctrls, 
                         prefix=names(rescList1)[3], threshold=padj.thr)
@@ -384,6 +385,9 @@ res.o <- attachGeneColumnToDf(mainDf=rescList1[[4]],
                                 rowNamesIdentifier="entrezgene",
                                 mapFromIdentifier="entrezgene",
                                 mapToIdentifier="external_gene_name")
+
+WriteDataFrameAsTsv(data.frame.to.save=res.o, 
+                    file.name.path=paste0(names(rescList1)[4], "_edgeR"))
 
 
 vp <- luciaVolcanoPlot(res.o, positive.controls.df=sd.pos.ctrls, 

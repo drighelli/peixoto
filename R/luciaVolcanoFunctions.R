@@ -71,11 +71,3 @@ luciaVolcanoPlot <- function(res.o, positive.controls.df, prefix,
 }
 
 
-
-
-
-
-
-
-
-
