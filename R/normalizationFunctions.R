@@ -85,7 +85,12 @@ RUVgNormalizationFunction <- function(data.to.normalize,
     return(ruved.set)
 }
 
-NormalizeData <- function(data.to.normalize, norm.type=c("fqua", "uqua", "tmm", "ruvg"), design.matrix=NULL, design.matrix.factors.column=NULL, estimated.genes=NULL, is.log=FALSE) {
+NormalizeData <- function(data.to.normalize, 
+                            norm.type=c("fqua", "uqua", "tmm", "ruvg"), 
+                            design.matrix=NULL, 
+                            design.matrix.factors.column=NULL, 
+                            estimated.genes=NULL, is.log=FALSE) 
+{
     ## @ norm.type can be uqua, tmm, fqua or ruvg
     
     x <- data.to.normalize
@@ -106,11 +111,13 @@ NormalizeData <- function(data.to.normalize, norm.type=c("fqua", "uqua", "tmm", 
         } else {
             require("edgeR")
             x <- edgeR::DGEList(counts=x)
-            if(norm.type=="uqua") {
+            if(norm.type=="uqua") 
+            {
                 x <- edgeR::calcNormFactors(x, method='upperquartile')
             } 
             
-            if(norm.type=="tmm") {
+            if(norm.type=="tmm") 
+            {
                 x <- edgeR::calcNormFactors(x, method='TMM')
             }
             

@@ -183,6 +183,13 @@ rescList1 <- applyEdgeR(counts=filteredCountsProp, design.matrix=desMat,
                         weight.columns=c("W_1", "W_2", "W_3", "W_4", "W_5"),
                         contrasts=cc, useIntercept=FALSE, p.threshold=1,
                         is.normalized=FALSE, verbose=TRUE)
+rescList1 <- lapply(seq_along(rescList1), function(i) 
+{
+    attachMeans(normalized.counts=normExprData, design.matrix=desMat, 
+                factor.column="gcondition", contrast.name=names(rescList1)[i],
+                de.results=rescList1[[i]])
+})
+
 ```
 
 ## WTSD5 - WTHC5

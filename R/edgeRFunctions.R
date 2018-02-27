@@ -64,11 +64,16 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
         cg <- gsub(pattern=" ", replacement="", x=c)
         cs <- strsplit(cg, split="-")[[1]]
         genes <- rownames(resC)
-
-        ctMeans <- computeMeans(counts=counts, design.matrix=design.matrix,
-                                factors.column=factors.column, contrst=cs,
-                                genes=genes)
-        resCMeans <- cbind(ctMeans, resC)
+        if(is.normalized) 
+        {
+            ctMeans <- computeMeans(counts=counts, design.matrix=design.matrix,
+                                    factors.column=factors.column, contrst=cs,
+                                    genes=genes, is.normalized=is.normalized)
+            resCMeans <- cbind(ctMeans, resC)
+        } else {
+            resCMeans <- resC
+        }
+        
         if(p.threshold != 1)
         {
             resCMeans <- resCMeans[(resCMeans$FDR < p.threshold),]
@@ -81,6 +86,23 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
     names(resClist) <- contrasts
 
     return(resClist)
+}
+
+
+attachMeans <- function(normalized.counts, design.matrix, factor.column, 
+                        contrast.name, de.results)
+{
+    cg <- gsub(pattern=" ", replacement="", x=contrast.name)
+    cs <- strsplit(cg, split="-")[[1]]
+    genes <- rownames(de.results)
+    
+    ctMeans <- computeMeans(counts=counts, design.matrix=design.matrix,
+                            factors.column=factors.column, contrst=cs,
+                            genes=genes)
+    resCMeans <- cbind(ctMeans, resC)
+    
+    return(resCMeans)
+    
 }
 
 #' Title
@@ -97,6 +119,7 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
 #' @examples
 computeMeans <- function(counts, design.matrix, factors.column, contrst, genes)
 {
+    
     design.factors <- design.matrix[, factors.column, drop=FALSE]
     counts <- counts[match(genes, rownames(counts)),]
     contrMeans <- do.call( cbind,
@@ -130,10 +153,13 @@ computeMeans <- function(counts, design.matrix, factors.column, contrst, genes)
 #' @examples
 applyEdgeRQLFit <- function(counts, factors, design, 
                     is.normalized=FALSE, method="TMM", verbose=FALSE)
-{    
+{ 
     if(verbose) message("Fitting edgeR QL model")
     dgel <- edgeR::DGEList(counts=counts, group=factors)
-    if(!is.normalized) dgel <- edgeR::calcNormFactors(dgel, method=method)
+    if(!is.normalized)
+    {
+        dgel <- edgeR::calcNormFactors(dgel, method=method)
+    }
     edisp <- edgeR::estimateDisp(y=dgel, design=design)
     fit <- edgeR::glmQLFit(edisp, design, robust=TRUE)
     return(fit)
