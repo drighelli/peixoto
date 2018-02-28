@@ -1,0 +1,239 @@
+---
+title: "Report Sleep Deprivation"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+    html_document:
+        fig_height: 9
+        fig_width: 9
+        toc: yes
+        toc_float: yes
+        toc_depth: 4
+        code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE,
+                      fig.width=9, fig.height=9, cache=TRUE)
+source("../R/reportIncludes.R")
+source("../R/luciaVolcanoFunctions.R")
+library(plotly)
+library(RUVSeq)
+```
+
+# Importing data
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=TRUE}
+countMatrix <- ReadDataFrameFromTsv(file.name.path="../data/refSEQ_countMatrix.txt")
+# head(countMatrix)
+
+designMatrix <- ReadDataFrameFromTsv(file.name.path="../design/all_samples_short_names_noRS2HC7.tsv")
+# head(designMatrix)
+
+filteredCountsProp <- filterLowCounts(counts.dataframe=countMatrix, 
+                                    is.normalized=FALSE,
+                                    design.dataframe=designMatrix,
+                                    cond.col.name="gcondition",
+                                    method.type="Proportion")
+```
+
+
+# Plot PCA of log unnormalized data
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=TRUE, prefix.plot="Prop-Un-Norm")
+```
+
+
+# control genes
+
+Loading Negative Control Genes to normalize data
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+library(readxl)
+
+sd.ctrls <- read_excel(path="../data/controls/Additional File 4 full list of BMC genomics SD&RS2.xlsx", sheet=1)
+sd.ctrls <- sd.ctrls[order(sd.ctrls$adj.P.Val),]
+
+sd.neg.ctrls <- sd.ctrls[sd.ctrls$adj.P.Val > 0.9, ]
+
+sd.neg.ctrls <- sd.neg.ctrls$`MGI Symbol`
+sd.neg.ctrls <- sd.neg.ctrls[-which(is.na(sd.neg.ctrls))]
+
+int.neg.ctrls <- sd.neg.ctrls
+neg.map <- convertGenesViaBiomart(specie="mm10", filter="mgi_symbol",
+                    filter.values=int.neg.ctrls, c("external_gene_name",
+                                "mgi_symbol", "entrezgene"))
+
+neg.map.nna <- neg.map[-which(is.na(neg.map$entrezgene)),]
+
+neg.ctrls.entrez <- as.character(neg.map.nna$entrezgene)
+
+ind.ctrls <- which(rownames(filteredCountsProp) %in% neg.ctrls.entrez)
+counts.neg.ctrls <- filteredCountsProp[ind.ctrls,]
+# PlotPCAPlotlyFunction(counts.data.frame=log1p(counts.neg.ctrls), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=TRUE, prefix.plot="Neg Ctrls not Norm")
+
+```
+
+## positive control genes
+
+Positive Control Genes
+
+```{r}
+## sleep deprivation
+sd.lit.pos.ctrls <- read_excel("../data/controls/SD_RS_PosControls_final.xlsx", 
+                        sheet=1)
+colnames(sd.lit.pos.ctrls) <- sd.lit.pos.ctrls[1,]
+sd.lit.pos.ctrls <- sd.lit.pos.ctrls[-1,]
+
+
+sd.est.pos.ctrls <- read_excel("../data/controls/SD_RS_PosControls_final.xlsx", 
+                        sheet=3)
+
+sd.pos.ctrls <- cbind(sd.est.pos.ctrls$`MGI Symbol`, "est")
+sd.pos.ctrls <- rbind(sd.pos.ctrls, cbind(sd.lit.pos.ctrls$Gene, "lit"))
+
+sd.pos.ctrls <- sd.pos.ctrls[-which(duplicated(sd.pos.ctrls[,1])),]
+sd.pos.ctrls <- sd.pos.ctrls[-which(is.na(sd.pos.ctrls[,1])),]
+
+```
+
+
+# Normalizations
+
+## TMM Normalization
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp, 
+                                    norm.type="tmm", 
+                                    design.matrix=designMatrix)
+
+PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=TRUE, prefix.plot="TMM-Norm")
+
+pal <- RColorBrewer::brewer.pal(9, "Set1")
+plotRLE(as.matrix(normPropCountsUqua), outline=FALSE, col=pal[designMatrix$gcondition])
+
+```
+
+## TMM + RUVs Normalization
+
+K=5
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+library(RUVSeq)
+neg.ctrl.list <- rownames(counts.neg.ctrls)
+groups <- makeGroups(designMatrix$gcondition)
+ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
+                       scIdx=groups, k=5)
+
+normExprData <- ruvedSExprData$normalizedCounts
+
+PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), design.matrix=designMatrix, shapeColname="genotype", colorColname="condition", xPCA="PC1", yPCA="PC2", plotly.flag=TRUE, show.plot.flag=TRUE, prefix.plot="TMM+RUV-Norm")
+
+
+pal <- RColorBrewer::brewer.pal(9, "Set1")
+plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
+```
+
+# edgeR DE Analysis
+
+## Interaction model
+Modeling interaction term to understand differences between Knock out and 
+Wild Type in Sleed Deprivation condition.
+
+```{r}
+interactionMatrix <- constructInteractionMatrix(design.matrix=designMatrix, 
+                                                   genotype.col="genotype",
+                                                   genotype.ref="WT",
+                                                   condition.col="condition",
+                                                   weights=ruvedSExprData$W)
+cond <- designMatrix[["condition"]]
+
+fit <- applyEdgeRGLMFit(counts=filteredCountsProp, factors=cond, 
+            design=interactionMatrix, is.normalized=FALSE, method="TMM",
+            verbose=FALSE)
+
+lrt <- applyEdgeRLRT(fit=fit, interaction.matrix=interactionMatrix, 
+                    interaction.term="genoKO:condSD5", verbose=FALSE)
+
+
+res.o.map <- convertGenesViaBiomart(specie="mm10", filter="entrezgene",
+                            filter.values=rownames(lrt),
+                            c("external_gene_name", "mgi_symbol", "entrezgene"))
+
+res.o <- attachGeneColumnToDf(mainDf=lrt,
+                                genesMap=res.o.map,
+                                rowNamesIdentifier="entrezgene",
+                                mapFromIdentifier="entrezgene",
+                                mapToIdentifier="external_gene_name")
+res.o <- res.o[order(res.o$FDR),]
+WriteDataFrameAsTsv(data.frame.to.save=res.o, 
+                    file.name.path=paste0("SD5_interaction_matrix", "_edgeR"))
+
+vp <- luciaVolcanoPlot(res.o, positive.controls.df=sd.pos.ctrls, 
+                        prefix="SD5 Interaction", threshold=0.05)
+ggplotly(vp)
+
+```
+
+## plotting first 10 genes profiles
+```{r}
+minor.ones <- res.o[(res.o$FDR < 0.15),]
+minor.ones <- minor.ones[order(minor.ones$FDR),]
+
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[1],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[2],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+    
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[3],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+    
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[4],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+    
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[5],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+    
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[6],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+    
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[7],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+    
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[8],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+    
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[9],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+    
+    geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=designMatrix, 
+                gene.name=minor.ones$gene[10],
+                res.o=res.o, show.plot=TRUE, plotly.flag=TRUE)
+
+```
+
+

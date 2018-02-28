@@ -68,7 +68,7 @@ applyEdgeR <- function(counts, design.matrix, factors.column=NULL,
         {
             ctMeans <- computeMeans(counts=counts, design.matrix=design.matrix,
                                     factors.column=factors.column, contrst=cs,
-                                    genes=genes, is.normalized=is.normalized)
+                                    genes=genes)
             resCMeans <- cbind(ctMeans, resC)
         } else {
             resCMeans <- resC
@@ -96,10 +96,13 @@ attachMeans <- function(normalized.counts, design.matrix, factor.column,
     cs <- strsplit(cg, split="-")[[1]]
     genes <- rownames(de.results)
     
-    ctMeans <- computeMeans(counts=counts, design.matrix=design.matrix,
-                            factors.column=factors.column, contrst=cs,
-                            genes=genes)
-    resCMeans <- cbind(ctMeans, resC)
+    ctMeans <- computeMeans(counts=normalized.counts, 
+                            design.matrix=design.matrix,
+                            factors.column=factor.column, 
+                            contrst=cs, genes=genes)
+    ctMeans <- ctMeans[order(rownames(ctMeans)),]
+    de.results <- de.results[order(rownames(de.results)),]
+    resCMeans <- cbind(ctMeans, de.results)
     
     return(resCMeans)
     
@@ -165,7 +168,6 @@ applyEdgeRQLFit <- function(counts, factors, design,
     return(fit)
 }
 
-
 #' Title
 #'
 #' @param counts 
@@ -188,7 +190,6 @@ applyEdgeRGLMFit <- function(counts, factors, design,
     fit <- edgeR::glmFit(edisp, design, robust=TRUE)
     return(fit)
 }
-
 
 #' Title
 #'

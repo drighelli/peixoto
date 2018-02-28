@@ -154,3 +154,9 @@ PlotVolcanoPlot(de.results=res.o, counts.dataframe=normExprData,
                 prefix.plot="SD5", threshold=0.05, 
                 positive.ctrls.list=NULL)
 
+geneProfileLucia(normalized.counts=normExprData, 
+                design.matrix=design.matrix, gene.name="320184",
+                show.plot=TRUE, plotly.flag=TRUE)
+
+
+
