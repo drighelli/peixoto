@@ -6,6 +6,17 @@ designMatrix <- ReadDataFrameFromTsv("design/all_samples_short_names.tsv.csv")
 exonmatrix <- ReadDataFrameFromTsv(file.name.path="data/NEW_PFC_exonMatrix.txt", 
                             row.names.col=NULL)
 
+exonDesignMatrix <- cbind(colnames(counts), designMatrix)
+exonDesignMatrix$samples <- rownames(exonDesignMatrix)
+exonDesignMatrix$exonsamples <- colnames(counts)
+rownames(exonDesignMatrix) <- exonDesignMatrix$exonsamples
+
+exonDesignMatrix <- exonDesignMatrix[-c(grep("RS2",exonDesignMatrix$condition)),]
+exonDesignMatrix<- exonDesignMatrix[-c(grep("HC7",exonDesignMatrix$condition)),]
+
+
+exonmatrix <- exonmatrix[, c(1:6, which(colnames(exonmatrix) %in% rownames(exonDesignMatrix)))]
+colnames(exonmatrix)
 annot <- exonmatrix[,c(1:6)]
 counts <- exonmatrix[,c(7:dim(exonmatrix)[2])]
 
@@ -13,12 +24,7 @@ y.all <- DGEList(counts=counts, genes=annot)
 
 y.all <- y.all[, colnames(counts)]
 
-exonDesignMatrix <- cbind(colnames(counts), designMatrix)
 
-
-designMatrix$samples <- rownames(designMatrix)
-designMatrix$exonsamples <- colnames(counts)
-rownames(designMatrix) <- designMatrix$exonsamples
 
 # colnames(counts)[designMatrix$gcondition]
 # y <- sumTechReps(y.all, designMatrix$gcondition)
@@ -50,9 +56,11 @@ y <- calcNormFactors(y)
 y$samples
 plotMDS(y)
 
-batch <- rep(1:5, 8)
+batch <- rep(1:5, 4)
+exonDesignMatrix$gcondition<-droplevels(exonDesignMatrix$gcondition )
+design <- model.matrix(~0+exonDesignMatrix$gcondition)
 
-design <- model.matrix(~batch+designMatrix$gcondition)
+colnames(design) <- unique(exonDesignMatrix$gcondition)
 
 y <- estimateDisp(y, design, robust=TRUE)
 y$common.dispersion
@@ -64,6 +72,9 @@ plotQLDisp(fit)
 
 fit$design
 
-qlf <- glmQLFTest(fit, coef=9)
-tt <- topTags(qlf)
-sum( tt$table$FDR < 0.05 )
+
+contr <- limma::makeContrasts(contrasts="KOSD5 - WTSD5", levels=design)
+qlf <- glmQLFTest(fit, contrast=contr)
+
+# tt <- topTags(qlf,)
+# sum( tt$table$FDR < 0.05 )

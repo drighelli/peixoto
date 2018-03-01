@@ -127,7 +127,7 @@ library(RUVSeq)
 neg.ctrl.list <- rownames(counts.neg.ctrls)
 groups <- makeGroups(designMatrix$gcondition)
 ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
-                       scIdx=groups, k=5)
+                       scIdx=groups, k=5, round=FALSE)
 
 normExprData <- ruvedSExprData$normalizedCounts
 
