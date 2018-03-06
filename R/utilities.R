@@ -12,6 +12,22 @@ ReadDataFrameFromTsv <- function(file.name.path, row.names.col=1, header.flag=TR
     return(df)
 }
 
+convertGenesViaMouseDb <- function(gene.list, fromType=c("SYMBOL", "ENTREZID"),
+                                toType=c("SYMBOL", "ENTREZID"))
+{
+    library("org.Mm.eg.db")
+    annotated.map <- AnnotationDbi::select(org.Mm.eg.db, 
+                                        keys=gene.list, 
+                                        keytype=fromType,
+                                        columns=c("SYMBOL", "ENTREZID"))
+    col.check <- colnames(annotated.map)[-which(colnames(annotated.map) == 
+                                                fromType)]
+    indsna <- is.na(annotated.map[col.check])
+    if(sum(indsna) > 0) annotated.map <- annotated.map[-which(indsna),]
+    return(annotated.map)
+                                                   
+}
+
 convertGenesViaBiomart <- function(specie=c("hg38", "mm10", "rnor6"), 
                                    attrs=NULL, filter=NULL, filter.values=NULL) 
 {
@@ -60,7 +76,9 @@ convertGenesViaBiomart <- function(specie=c("hg38", "mm10", "rnor6"),
 attachGeneColumnToDf <- function(mainDf, genesMap, 
                                  rowNamesIdentifier=c("entrezgene", 
                                                     "ensembl", 
-                                                    "symbol"),
+                                                    "symbol", 
+                                                    "ENTREZID",
+                                                    "SYMBOL"),
                                  mapFromIdentifier=NULL, mapToIdentifier=NULL)
 {
     match.arg(rowNamesIdentifier)

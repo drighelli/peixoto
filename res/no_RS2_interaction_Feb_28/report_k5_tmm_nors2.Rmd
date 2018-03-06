@@ -16,8 +16,8 @@ editor_options:
 ```{r include=FALSE}
 knitr::opts_chunk$set(eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE,
                       fig.width=9, fig.height=9, cache=TRUE)
-source("../R/reportIncludes.R")
-source("../R/luciaVolcanoFunctions.R")
+source("../../R/reportIncludes.R")
+source("../../R/luciaVolcanoFunctions.R")
 library(plotly)
 library(RUVSeq)
 ```
@@ -25,10 +25,10 @@ library(RUVSeq)
 # Importing data
 
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=TRUE}
-countMatrix <- ReadDataFrameFromTsv(file.name.path="../data/refSEQ_countMatrix.txt")
+countMatrix <- ReadDataFrameFromTsv(file.name.path="../../data/refSEQ_countMatrix.txt")
 # head(countMatrix)
 
-designMatrix <- ReadDataFrameFromTsv(file.name.path="../design/all_samples_short_names_noRS2HC7.tsv")
+designMatrix <- ReadDataFrameFromTsv(file.name.path="../../design/all_samples_short_names_noRS2HC7.tsv")
 # head(designMatrix)
 
 filteredCountsProp <- filterLowCounts(counts.dataframe=countMatrix, 
@@ -54,7 +54,7 @@ Loading Negative Control Genes to normalize data
 
 library(readxl)
 
-sd.ctrls <- read_excel(path="../data/controls/Additional File 4 full list of BMC genomics SD&RS2.xlsx", sheet=1)
+sd.ctrls <- read_excel(path="../../data/controls/Additional File 4 full list of BMC genomics SD&RS2.xlsx", sheet=1)
 sd.ctrls <- sd.ctrls[order(sd.ctrls$adj.P.Val),]
 
 sd.neg.ctrls <- sd.ctrls[sd.ctrls$adj.P.Val > 0.9, ]
@@ -83,13 +83,13 @@ Positive Control Genes
 
 ```{r}
 ## sleep deprivation
-sd.lit.pos.ctrls <- read_excel("../data/controls/SD_RS_PosControls_final.xlsx", 
+sd.lit.pos.ctrls <- read_excel("../../data/controls/SD_RS_PosControls_final.xlsx", 
                         sheet=1)
 colnames(sd.lit.pos.ctrls) <- sd.lit.pos.ctrls[1,]
 sd.lit.pos.ctrls <- sd.lit.pos.ctrls[-1,]
 
 
-sd.est.pos.ctrls <- read_excel("../data/controls/SD_RS_PosControls_final.xlsx", 
+sd.est.pos.ctrls <- read_excel("../../data/controls/SD_RS_PosControls_final.xlsx", 
                         sheet=3)
 
 sd.pos.ctrls <- cbind(sd.est.pos.ctrls$`MGI Symbol`, "est")

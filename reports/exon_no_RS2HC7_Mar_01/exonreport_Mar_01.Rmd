@@ -1,0 +1,361 @@
+---
+title: "Report Exon Sleep Deprivation"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+    html_document:
+        fig_height: 9
+        fig_width: 9
+        toc: yes
+        toc_float: yes
+        toc_depth: 4
+        code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE,
+                      fig.width=9, fig.height=9, cache=TRUE)
+source("../../R/reportIncludes.R")
+library(edgeR)
+```
+
+# Importing data
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=TRUE}
+designMatrix <- ReadDataFrameFromTsv("../../design/all_samples_short_names.tsv.csv")
+exonmatrix <- ReadDataFrameFromTsv(file.name.path="../../data/NEW_PFC_exonMatrix.txt", 
+                            row.names.col=NULL)
+
+counts <- exonmatrix[,c(7:dim(exonmatrix)[2])]
+
+exonDesignMatrix <- cbind(colnames(counts), designMatrix)
+exonDesignMatrix$samples <- rownames(exonDesignMatrix)
+exonDesignMatrix$exonsamples <- colnames(counts)
+rownames(exonDesignMatrix) <- exonDesignMatrix$exonsamples
+
+exonDesignMatrix <- exonDesignMatrix[-c(grep("RS2",exonDesignMatrix$condition)),]
+exonDesignMatrix<- exonDesignMatrix[-c(grep("HC7",exonDesignMatrix$condition)),]
+
+
+exonmatrix <- exonmatrix[, c(1:6, which(colnames(exonmatrix) %in% rownames(exonDesignMatrix)))]
+colnames(exonmatrix)
+annot <- exonmatrix[,c(1:6)]
+counts <- exonmatrix[,c(7:dim(exonmatrix)[2])]
+
+y.all <- DGEList(counts=counts, genes=annot)
+
+y.all <- y.all[, colnames(counts)]
+summary(is.na(y.all$genes))
+dge <- y.all
+```
+
+# loading annotation file
+
+```{r}
+
+## annotation downloaded from ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/
+
+ncbi.annotation <- read.delim("../../data/annotation/Mus_musculus.gene_info", 
+                    comment.char = "%", header=TRUE, stringsAsFactors=FALSE)
+
+map <- match(dge$genes$GeneID, ncbi.annotation$GeneID)
+# map <- map[!is.na(map)]
+# print("ERROR: NA ON CHROMOSOME")
+# dge$genes$newChr <- ncbi.annotation$chromosome[map] 
+dge$genes$Chr <- gsub(pattern="chr", replacement="", x=dge$genes$Chr)
+dge$genes$Symbol <- ncbi.annotation$Symbol[map]
+dge$genes$Strand <- NULL
+# dge$genes
+dge.annot <- dge
+summary(is.na(dge.annot$genes))
+```
+
+# filtering data
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+long_data <- gather(exonmatrix, key=condition, value=expression, 
+                rownames(exonDesignMatrix))
+
+long_data %>%
+    group_by(GeneID, condition) %>%
+    summarize(total = sum(expression)) %>%
+    group_by(GeneID) %>%
+    summarize(pass = sum(total > 20) >= 5) %>%
+    filter(pass) %>%
+    pull(GeneID) -> keep_ids
+
+keep <- which(exonmatrix$GeneID %in% keep_ids)
+# length(keep)
+# dim(exonmatrix)
+
+dge.annot <- dge.annot[keep, , keep.lib.sizes=FALSE]
+
+```
+
+
+# Normalizations
+
+## TMM  
+
+```{r}
+dge.norm <- calcNormFactors(dge.annot)
+dge.counts <- estimateCommonDisp(dge.norm)
+
+PlotPCAPlotlyFunction(counts.data.frame=dge.counts$pseudo.counts, 
+            design.matrix=exonDesignMatrix, shapeColname="condition", 
+            colorColname="genotype", plotly.flag=TRUE, show.plot.flag=TRUE)
+```
+
+
+## loading negative controls
+```{r}
+## negative controls
+library(readxl)
+
+sd.ctrls <- read_excel(path="../../data/controls/Additional File 4 full list of BMC genomics SD&RS2.xlsx", sheet=1)
+sd.ctrls <- sd.ctrls[order(sd.ctrls$adj.P.Val),]
+
+sd.neg.ctrls <- sd.ctrls[sd.ctrls$adj.P.Val > 0.7, ]
+
+sd.neg.ctrls <- sd.neg.ctrls$`MGI Symbol`
+sd.neg.ctrls <- sd.neg.ctrls[-which(is.na(sd.neg.ctrls))]
+
+tab <- table(dge.counts$genes$Symbol)
+single <- names(which(tab==1))
+negcon <- which(dge.counts$genes$Symbol %in% intersect(sd.neg.ctrls, single))
+# length(negcon)
+
+exonDesignMatrix$gcondition <- droplevels(exonDesignMatrix$gcondition)
+```
+## ruving
+
+```{r}
+library(RUVSeq)
+groups <- makeGroups(exonDesignMatrix$gcondition)
+ruvedSExprData <- RUVs(as.matrix(round(dge.counts$pseudo.counts)), cIdx=negcon,
+                       scIdx=groups, k=5)
+
+normExprData <- ruvedSExprData$normalizedCounts
+
+PlotPCAPlotlyFunction(counts.data.frame=normExprData, 
+            design.matrix=exonDesignMatrix, shapeColname="condition", 
+            colorColname="genotype", plotly.flag=TRUE, show.plot.flag=TRUE,
+            prefix.plot="TMM+RUVs")
+
+plotRLE(normExprData, outline=FALSE)
+```
+
+# edgering with ruv
+
+```{r}
+design <- model.matrix(~0+exonDesignMatrix$gcondition + ruvedSExprData$W)
+
+colnames(design) <- c(levels(exonDesignMatrix$gcondition), paste0("W", 1:5))
+
+dge.disp.des <- estimateDisp(dge.norm, design, robust=TRUE)
+# dge.disp.des$pseudo.counts
+# dge.counts$common.dispersion
+# plotBCV(dge.disp.des)
+fit <- glmFit(dge.disp.des, design)
+```
+
+## KOSD5 - WTSD5 
+
+### Differential expression
+
+```{r}
+contr <- limma::makeContrasts(contrasts="KOSD5 - WTSD5", levels=design)
+qlf <- glmLRT(fit, contrast=contr)
+topTags(qlf, p.value=0.05, n=20)
+```
+
+### Alternative Splicing
+
+```{r}
+
+sp <- diffSpliceDGE(fit, contrast=contr, geneid="GeneID", exonid="Start")
+topSpliceDGE(sp, test="Simes", FDR=0.05)
+```
+
+#### exon plot
+```{r}
+plotSpliceDGE(sp, geneid="Shank3", genecol="Symbol")
+plotSpliceDGE(sp, geneid="Cntn1", genecol="Symbol")
+plotSpliceDGE(sp, geneid="Rpl3", genecol="Symbol")
+plotSpliceDGE(sp, geneid="Tuba1b", genecol="Symbol")
+
+plotSpliceDGE(sp, geneid="Fabp7", genecol="Symbol")
+plotSpliceDGE(sp, geneid="Hdac7", genecol="Symbol")
+plotSpliceDGE(sp, geneid="Per3", genecol="Symbol")
+
+plotSpliceDGE(sp, geneid="Kalrn", genecol="Symbol")
+plotSpliceDGE(sp, geneid="Sgk1", genecol="Symbol")
+plotSpliceDGE(sp, geneid="Dido1", genecol="Symbol")
+```
+
+# edgering without ruv (QLfit)
+
+```{r}
+design <- model.matrix(~0+exonDesignMatrix$gcondition)
+
+colnames(design) <- levels(exonDesignMatrix$gcondition)
+
+dge.disp.des <- estimateDisp(dge.norm, design, robust=TRUE)
+
+fit <- glmFit(dge.disp.des, design)#glmQLFit(dge.disp.des, design)
+```
+
+## KOSD5 - WTSD5 
+
+### Differential expression (QLtest)
+
+```{r}
+contr <- limma::makeContrasts(contrasts="KOSD5 - WTSD5", levels=design)
+qlf <- glmLRT(fit, contrast=contr)#glmQLFTest(fit, contrast=contr)
+topTags(qlf, n=20, p.value=0.05)
+```
+
+### Alternative Splicing
+
+```{r}
+sp1 <- diffSpliceDGE(fit, contrast=contr, geneid="GeneID", exonid="Start")
+topSpliceDGE(sp1, test="Simes", FDR=0.05)
+WriteDataFrameAsTsv(data.frame.to.save=topSpliceDGE(sp1, test="Simes", FDR=1, 
+            number=Inf), file.name.path="KOSD5_WTSD5_diff_Splice_edger")
+```
+
+#### exon plot
+```{r}
+plotSpliceDGE(sp1, geneid="Shank3", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Cntn1", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Rpl3", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Tuba1b", genecol="Symbol")
+
+plotSpliceDGE(sp1, geneid="Fabp7", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Hdac7", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Per3", genecol="Symbol")
+
+plotSpliceDGE(sp1, geneid="Kalrn", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Sgk1", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Dido1", genecol="Symbol")
+```
+
+## WTSD5 - WTHC5 
+
+### Differential expression (QLtest)
+
+```{r}
+contr <- limma::makeContrasts(contrasts="WTSD5 - WTHC5", levels=design)
+qlf <- glmLRT(fit, contrast=contr)#glmQLFTest(fit, contrast=contr)
+topTags(qlf, n=20, p.value=0.05)
+```
+
+### Alternative Splicing
+
+```{r}
+sp1 <- diffSpliceDGE(fit, contrast=contr, geneid="GeneID", exonid="Start")
+topSpliceDGE(sp1, test="Simes", FDR=0.05)
+WriteDataFrameAsTsv(data.frame.to.save=topSpliceDGE(sp1, test="Simes", FDR=1, 
+            number=Inf), file.name.path="WTSD5_WTHC5_diff_Splice_edger")
+```
+
+#### exon plot
+```{r}
+plotSpliceDGE(sp1, geneid="Shank3", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Kalrn", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Pde4dip", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Pclo", genecol="Symbol")
+
+plotSpliceDGE(sp1, geneid="Fabp7", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Hdac7", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Per3", genecol="Symbol")
+
+plotSpliceDGE(sp1, geneid="Osbp2", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Ablim2", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Ppp2r5c", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="D030047H15Rik", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Kalrn", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Sgk1", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Dido1", genecol="Symbol")
+
+```
+
+## KOSD5 - KOHC5 
+
+### Differential expression (QLtest)
+
+```{r}
+contr <- limma::makeContrasts(contrasts="KOSD5 - KOHC5", levels=design)
+qlf <- glmLRT(fit, contrast=contr)#glmQLFTest(fit, contrast=contr)
+topTags(qlf, n=20, p.value=0.05)
+```
+
+### Alternative Splicing
+
+```{r}
+sp1 <- diffSpliceDGE(fit, contrast=contr, geneid="GeneID", exonid="Start")
+topSpliceDGE(sp1, test="Simes", FDR=0.05)
+WriteDataFrameAsTsv(data.frame.to.save=topSpliceDGE(sp1, test="Simes", FDR=1, 
+            number=Inf), file.name.path="KOSD5_KOHC5_diff_Splice_edger")
+```
+
+#### exon plot
+```{r}
+plotSpliceDGE(sp1, geneid="Shank3", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="D030047H15Rik", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Pde4dip", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Pclo", genecol="Symbol")
+
+plotSpliceDGE(sp1, geneid="Fabp7", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Hdac7", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Per3", genecol="Symbol")
+
+plotSpliceDGE(sp1, geneid="Osbp2", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Tsc22d3", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Rbm3", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Kalrn", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Sgk1", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Dido1", genecol="Symbol")
+
+```
+
+## KOHC5 - WTHC5
+
+### Differential expression (QLtest)
+
+```{r}
+contr <- limma::makeContrasts(contrasts="KOHC5 - WTHC5", levels=design)
+qlf <- glmLRT(fit, contrast=contr)#glmQLFTest(fit, contrast=contr)
+topTags(qlf, n=20, p.value=0.05)
+```
+
+### Alternative Splicing
+
+```{r}
+sp1 <- diffSpliceDGE(fit, contrast=contr, geneid="GeneID", exonid="Start")
+topSpliceDGE(sp1, test="Simes", FDR=0.05)
+WriteDataFrameAsTsv(data.frame.to.save=topSpliceDGE(sp1, test="Simes", FDR=1, 
+            number=Inf), file.name.path="KOHC5_WTHC5_diff_Splice_edger")
+```
+
+#### exon plot
+```{r}
+plotSpliceDGE(sp1, geneid="Shank3", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Cntn1", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Stmn1", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Kif21a", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Rpl3", genecol="Symbol")
+
+plotSpliceDGE(sp1, geneid="Fabp7", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Hdac7", genecol="Symbol")
+plotSpliceDGE(sp1, geneid="Per3", genecol="Symbol")
+
+```
+
+
+
+

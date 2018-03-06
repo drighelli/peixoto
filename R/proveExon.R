@@ -30,7 +30,7 @@ y.all <- y.all[, colnames(counts)]
 
 # colnames(counts)[designMatrix$gcondition]
 # y <- sumTechReps(y.all, designMatrix$gcondition)
-y<-y.all
+y <- y.all
 y$samples 
 y
 
@@ -38,7 +38,7 @@ colnames(y)
 
 ## annotation downloaded from ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/
 
-ncbi <- read.delim("data/annotation/Mus_musculus.gene_info", comment.char = "%", 
+ncbi.annotation <- read.delim("data/annotation/Mus_musculus.gene_info", comment.char = "%", 
                     header=TRUE, stringsAsFactors=FALSE)
 
 m <- match(y$genes$GeneID, ncbi$GeneID)
@@ -50,7 +50,8 @@ head(y$genes)
 library(dplyr)
 library(tidyr)
 
-long_data <- gather(exonmatrix, key = condition, value = expression, S3HC5_1:WTSD5_6)
+long_data <- gather(exonmatrix, key = condition, value = expression, 
+                S3HC5_1:WTSD5_6)
 
 long_data %>%
     group_by(GeneID, condition) %>%
@@ -88,7 +89,7 @@ single <- names(which(tab==1))
 negcon <- which(y$genes$Symbol %in% intersect(sd.neg.ctrls, single))
 length(negcon)
 
-exonDesignMatrix$gcondition<-droplevels(exonDesignMatrix$gcondition )
+exonDesignMatrix$gcondition <- droplevels(exonDesignMatrix$gcondition )
 
 library(RUVSeq)
 groups <- makeGroups(exonDesignMatrix$gcondition)
