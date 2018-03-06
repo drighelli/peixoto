@@ -7,10 +7,9 @@ Venn2de <- function(x, y, label1, label2, title, plot.dir, conversion.map=NULL)
     out.path <- file.path(plot.dir, "venn2")
     dir.create(out.path)
     
-    a15 = x
-    
-    b15 = y
-    
+    a15 <- x
+    b15 <- y
+
     c15 <- intersect(a15, b15)     #common gene names
     
     ab <- setdiff(a15, b15)
@@ -59,19 +58,19 @@ Venn2de <- function(x, y, label1, label2, title, plot.dir, conversion.map=NULL)
                             mapToIdentifier="SYMBOL")
     }
     
-    write.table(c15, file=outputName , quote=FALSE, sep="\t", row.names=FALSE)
-    write.table(ab, file=outputName2 , quote=FALSE, sep="\t", row.names=FALSE)
-    write.table(ba, file=outputName3 , quote=FALSE, sep="\t", row.names=FALSE)
+    write.table(c15, file=outputName, quote=FALSE, sep="\t", row.names=FALSE)
+    write.table(ab, file=outputName2, quote=FALSE, sep="\t", row.names=FALSE)
+    write.table(ba, file=outputName3, quote=FALSE, sep="\t", row.names=FALSE)
     
     
     # outputName=file.path(out.path, paste(label1,"_",label2,"_VennDiagramDE.pdf",sep=""))
     
     # dev.new()
-    aa <- limma::vennDiagram(MAT, circle.col= c("red","green"), main=title)
+    limma::vennDiagram(MAT, circle.col= c("red","green"), main=title)
     
     # dev.print(device = pdf, file=outputName, width=10, height=10)
     # dev.off()
     # print(c15)
-    return(aa)
+    return(list(int=c15, XnoY=ab, YnoX=ba))
     
   }

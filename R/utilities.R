@@ -109,3 +109,25 @@ attachGeneColumnToDf <- function(mainDf, genesMap,
     return(mainDf)
     
 }
+
+#' subsetDfByCol
+#'
+#' @param df a dataframe.
+#' @param list a list of identifiers.
+#' @param colname the df column where to check the list in the df. 
+#' If NULL, the rownames will be used.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+subsetDfByCol <- function(df, list, colname=NULL)
+{
+    if(is.null(colname)) 
+    {
+        idx <- which(rownames(df) %in% list)
+    } else {
+        idx <- which(df[[colname]] %in% list)
+    }
+    df <- df[idx,]
+}
