@@ -28,7 +28,8 @@ geneProfileLucia <- function(normalized.counts, design.matrix,
         {
             gene.name.r <- gene.name
         } else {
-            stop("gene ", gene.name," not present!")
+            warning("gene ", gene.name," not present!")
+            return()
         }
         
     }

@@ -86,7 +86,7 @@ attachGeneColumnToDf <- function(mainDf, genesMap,
     stopifnot(!is.null(mapToIdentifier))
     
     
-    mainDf <- mainDf[order(rownames(mainDf)),]
+    mainDf <- mainDf[order(rownames(mainDf)), , drop=FALSE]
     rownames <- rownames(mainDf)
     
     mainDf$check <- NA
