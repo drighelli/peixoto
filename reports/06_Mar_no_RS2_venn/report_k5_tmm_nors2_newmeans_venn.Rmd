@@ -738,8 +738,8 @@ heatmap.2(
 ```
 
 ```{r}
-which(kowthc5 
-kowtsd5
+# which(kowthc5 
+# kowtsd5
 ```
 
 
