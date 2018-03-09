@@ -275,6 +275,10 @@ pos.df <- cbind(tot.ctrls, tot.pc.de, tot.pc.nde)
 colnames(pos.df) <- c("total_p.ctrl", "p.ctrl_de_mapped", 
                     "p.ctrl_notde_mapped")
 rownames(pos.df) <- names(rescList1)[1]
+
+wt <- res.o[which(res.o$FDR < 0.05),]
+wt.sign.genes.entrez <- rownames(res.o)[which(res.o$FDR < 0.05)]
+
 # PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
 #                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
 ```
@@ -483,6 +487,10 @@ tot.pc.nde <- length(idx.pc) - tot.pc.de
 pos.dff <- cbind(tot.ctrls, tot.pc.de, tot.pc.nde)
 rownames(pos.dff) <- names(rescList1)[2]
 pos.df <- rbind(pos.df, pos.dff)
+
+ko <- res.o[which(res.o$FDR < 0.05),]
+ko.sign.genes.entrez <- rownames(res.o)[which(res.o$FDR < 0.05)]
+
 # PlotMAPlotCounts(de.results=res.o, counts.dataframe=normExprData, design.matrix=desMat,
 #                  show.plot.flag=TRUE, plotly.flag=TRUE, save.plot=FALSE, prefix.plot=names(rescList1)[1], threshold=0.05)
 ```
@@ -641,7 +649,7 @@ geneProfileLucia(normalized.counts=normExprData,
 
 geneProfileLucia(normalized.counts=normExprData,
             design.matrix=designMatrix,
-            gene.name="Shank3",
+            gene.name="Jun",
             res.o=gene.map, show.plot=TRUE, plotly.flag=TRUE)
 
 geneProfileLucia(normalized.counts=normExprData,
@@ -673,16 +681,17 @@ de.genes.symb <- attachGeneColumnToDf(as.data.frame(de.genes.entr,
 
 de.genes.symb[which(is.na(de.genes.symb$gene)),]
 de.genes.symb$gene[which(de.genes.symb$gene=="100039826")]  <- "Gm2444" ## not annotated in ncbi
+de.genes.symb$gene[which(de.genes.symb$gene=="210541")]  <- "Entrez:210541" ## not annotated in ncbi
 
 
-de.genes.counts <- subset(normExprData, rownames(normExprData) %in% de.genes.entr)
+de.genes.counts <- normExprData[match(de.genes.symb$de.genes.entr, rownames(normExprData)),]
 rownames(de.genes.counts) <- de.genes.symb$gene
 
 de.gene.means <- computeGeneMeansOverGroups(counts=de.genes.counts, 
                             design=designMatrix, groupColumn="gcondition")
 
 library(gplots)
-color.palette = c("red", "black", "green")
+color.palette = c("black", "yellow")
 pal <- colorRampPalette(color.palette)(n = 1000)
 # pal <- colorRampPalette(c("yellow","red"))(n = 100)
 lmat = rbind(c(0,3,0), c(2,1,0), c(0,4,0))
@@ -690,8 +699,12 @@ lwid = c(1, 4, 1)
 lhei = c(1, 4, 1)
 row.labels.percent=0.5
 
+filter <- apply(de.gene.means, 1, function(x) log(x[4]/x[3]) * log(x[2]/x[1]) < 0)
+filter[is.na(filter)] <- FALSE
+table(filter)
+
 heatmap.2(
-    as.matrix(de.gene.means), 
+    as.matrix(log(de.gene.means[filter,]+1)), 
     col=pal, 
     scale="row", 
     dendrogram="row", ## manage dendrogram
@@ -704,18 +717,28 @@ heatmap.2(
     lhei=lhei,
     lwid=lwid,
     #cexRow=row.labels.percent,
-    colsep=c(4,8)
+    colsep=c(2)
     # ,key.par = list(cex=0.5)
     # ,keysize = 0.3
     # , breaks = 5000
     # , key=FALSE
 )
 
+library(pheatmap)
+filter2 <- rowMeans(de.gene.means)>0
+pheatmap(log(de.gene.means[filter2,]+1), cluster_cols = FALSE, scale = "row", color = pal, border_color = NA, fontsize_row = 5)
+
+pheatmap(log(de.gene.means[filter,]+1), cluster_cols = FALSE, scale = "row", color = pal, border_color = NA, fontsize_row = 8)
+
+pheatmap(log(de.genes.counts[filter2,]+1), cluster_cols = FALSE, scale = "row", color = pal, border_color = NA, fontsize_row = 5, gaps_col = c(5, 10, 15))
+
+pheatmap(log(de.genes.counts[filter,]+1), cluster_cols = FALSE, scale = "row", color = pal, border_color = NA, fontsize_row = 8, gaps_col = c(5, 10, 15))
+
 heatmap(as.matrix(de.gene.means), Colv = NA, Rowv = NA, scale="row")
 
 
 heatmap.2(
-    as.matrix(de.genes.counts), 
+    as.matrix(log(de.genes.counts[filter,]+1)),
     col=pal, 
     scale="row", 
     dendrogram="row", ## manage dendrogram

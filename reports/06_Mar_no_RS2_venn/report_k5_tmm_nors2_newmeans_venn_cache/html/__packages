@@ -23,3 +23,6 @@ RUVSeq
 readxl
 AnnotationDbi
 org.Mm.eg.db
+cowplot
+plyr
+gplots
