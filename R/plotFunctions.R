@@ -118,7 +118,8 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
             ggplot2::geom_point(aesStrObj, size=size) +
             ggplot2::ggtitle(strings$title) + 
             ggplot2::xlab(paste(xPCA, xproppca)) + 
-            ggplot2::ylab(paste(yPCA, yproppca))
+            ggplot2::ylab(paste(yPCA, yproppca)) +
+            ggplot2::scale_color_manual(values=c( "red2", "blue2"))
     }
 
 
@@ -127,6 +128,8 @@ PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,
             stop("Please set a folder where to plot the PCA!")
         }
         if(!is.null(strings$plot.file.name)) {
+            ggsave(filename="PCA.pdf", plot=ggp, device="pdf", path="./", 
+                    dpi=600)
             # SaveGGplot(ggplot.to.save=ggp, plot.folder=strings$plot.folder,
                        # plot.file.name=strings$plot.file.name,
                        # plotly.flag=plotly.flag) ## to check and improve ## saw something somewhere on the internet
