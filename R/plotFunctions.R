@@ -1,4 +1,12 @@
-
+save_pheatmap_pdf <- function(plot, filename, width=10, height=10) {
+    x <- plot
+    stopifnot(!missing(x))
+    stopifnot(!missing(filename))
+    pdf(filename, width=width, height=height)
+    grid::grid.newpage()
+    grid::grid.draw(x$gtable)
+    dev.off()
+}
 ###### PCA FUNCTIONS
 
 PlotPCAPlotlyFunction <- function(counts.data.frame, design.matrix,

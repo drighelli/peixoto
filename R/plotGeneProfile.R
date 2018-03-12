@@ -1,7 +1,6 @@
-
-
-
-ProcessCountDataFrameForPlotCounts <- function(gene.name.normalized.counts, design.matrix, gene.name) {
+ProcessCountDataFrameForPlotCounts <- function(gene.name.normalized.counts, 
+                                            design.matrix, gene.name) 
+{
     gene.name.normalized.counts <- gene.name.normalized.counts[which(rownames(gene.name.normalized.counts) %in% gene.name), , drop=FALSE]
     gene.name.norm.counts.t <- as.data.frame(t(gene.name.normalized.counts))
     gene.name.norm.counts.t$genename <- gene.name
