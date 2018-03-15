@@ -504,7 +504,6 @@ ddetable
 pos.df
 ```
 
-
 # Venn KOHC5-WTHC5 vs KOSD5-WTSD5
 
 ```{r}
@@ -707,6 +706,23 @@ g <- geneProfileLucia(normalized.counts=normExprData,
             res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE)
 ggplotly(g)
 save_plot(filename=paste0("plots/","Kcnv1", "_gene_profile.pdf"), plot=g) 
+
+
+g <- geneProfileLucia(normalized.counts=normExprData,
+            design.matrix=designMatrix,
+            gene.name="Nr1d1",
+            res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE)
+ggplotly(g)
+save_plot(filename=paste0("plots/", "Nr1d1", "_gene_profile.pdf"), plot=g) 
+
+
+g <- geneProfileLucia(normalized.counts=normExprData,
+            design.matrix=designMatrix,
+            gene.name="Per3",
+            res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE)
+ggplotly(g)
+save_plot(filename=paste0("plots/", "Per3", "_gene_profile.pdf"), plot=g) 
+
 
 ```
 
