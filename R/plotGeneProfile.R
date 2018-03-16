@@ -32,6 +32,7 @@ ProcessCountDataFrameForPlotCounts <- function(gene.name.normalized.counts,
             gene.name.norm.counts.t <- rbind(gene.name.norm.counts.t, gene.df)
             i <- i+1
         }
+        gene.name.norm.counts.t$gname <- paste0(gene.name.norm.counts.t$genotype, gene.name.norm.counts.t$genename)
     } else {
         gene.name.normalized.counts <- gene.name.normalized.counts[which(rownames(gene.name.normalized.counts) %in% gene.name), , drop=FALSE]
         gene.name.norm.counts.t <- as.data.frame(t(gene.name.normalized.counts))
@@ -123,13 +124,13 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
                  aes_string(x="condition", y="means", color="genename")) + 
         geom_point() + 
         stat_smooth(data=gn.means, 
-                    mapping=aes(x=as.numeric(as.factor(gcondition)), 
+                    mapping=aes(x=as.numeric(as.factor(condition)), 
                                 y=means, 
                                 color=genename), 
-                    method = "lm", se=FALSE, fullrange=FALSE) +
+                    method="lm", se=FALSE, fullrange=FALSE) +
         facet_grid(.~genotype) +
         ggtitle(paste( "Gene profiles", sep=" "))
-    
+    pp
     if(show.plot) 
     {
         if(plotly.flag)
