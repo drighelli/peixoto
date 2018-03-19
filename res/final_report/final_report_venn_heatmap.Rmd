@@ -81,7 +81,7 @@ int.neg.ctrls <- sd.neg.ctrls
 int.neg.ctrls <- unique(int.neg.ctrls)
 neg.map <- convertGenesViaMouseDb(gene.list=int.neg.ctrls, fromType="SYMBOL",
                                 "ENTREZID")
-sum(is.na(neg.map$ENTREZID))
+# sum(is.na(neg.map$ENTREZID))
 neg.ctrls.entrez <- as.character(neg.map$ENTREZID)
 
 
@@ -837,10 +837,10 @@ save_plot(filename=paste0("plots/", "Fabp7", "_gene_profile.pdf"), plot=g)
 ```
 
 ```{r}
-g <- geneGroupProfile(normalized.counts=normExprData, design.matrix=designMatrix,
-            gene.names=c("Nr1d1", "Fabp7", "Per3"),
-            res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE)
-ggplotly(g)
+# g <- geneGroupProfile(normalized.counts=normExprData, design.matrix=designMatrix,
+            # gene.names=c("Nr1d1", "Fabp7", "Per3"),
+            # res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE)
+# ggplotly(g)
 ```
 
 
