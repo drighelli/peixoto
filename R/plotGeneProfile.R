@@ -122,12 +122,13 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
     
     pp <- ggplot(gn.means, 
                  aes_string(x="condition", y="means", color="genename")) + 
-        geom_point() + 
-        stat_smooth(data=gn.means, 
-                    mapping=aes(x=as.numeric(as.factor(condition)), 
-                                y=means, 
-                                color=genename), 
-                    method="lm", se=FALSE, fullrange=FALSE) +
+        # geom_point() + 
+        geom_line() +
+        # line_smooth(data=gn.means, 
+                    # mapping=aes(x=as.numeric(as.factor(condition)), 
+                                # y=means, 
+                                # color=gname), 
+                    # method="lm", se=FALSE, fullrange=FALSE) +
         facet_grid(.~genotype) +
         ggtitle(paste( "Gene profiles", sep=" "))
     pp
