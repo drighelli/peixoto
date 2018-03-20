@@ -98,7 +98,7 @@ geneProfileLucia <- function(normalized.counts, design.matrix,
 
 geneGroupProfile <- function(normalized.counts, design.matrix, 
                              gene.names, res.o=NULL, show.plot=FALSE, 
-                             plotly.flag=FALSE) 
+                             plotly.flag=FALSE, log.flag=FALSE) 
 {
     idx <- which(res.o$gene %in% gene.names)
     if(length(idx) > 0 )
@@ -121,14 +121,26 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
         gene.name.normalized.counts=normalized.counts,
         design.matrix=design.matrix, gene.name=gene.name.r, symbols=gene.names)
     
-    pp <- ggplot(gn.means, aes(y=gn.means$means, x=gn.means$condition, color=genename)) +
-        geom_point() +
-        geom_line(aes(y=gn.means$means, x=as.numeric(gn.means$condition), 
-                      color=genename)) + 
-        facet_grid(.~genotype) +
-        ggtitle(paste( "Gene profiles", sep=" ")) +
-        xlab("condition") +
-        ylab("means")
+    if(log.flag)
+    {
+        pp <- ggplot(gn.means, aes(y=log(gn.means$means), x=gn.means$condition, color=genename)) +
+            geom_point() +
+            geom_line(aes(y=log(gn.means$means), x=as.numeric(gn.means$condition), 
+                          color=genename)) + 
+            facet_grid(.~genotype) +
+            ggtitle(paste( "Gene profiles", sep=" ")) +
+            xlab("condition") +
+            ylab("means")
+    } else {
+        pp <- ggplot(gn.means, aes(y=gn.means$means, x=gn.means$condition, color=genename)) +
+            geom_point() +
+            geom_line(aes(y=gn.means$means, x=as.numeric(gn.means$condition), 
+                          color=genename)) + 
+            facet_grid(.~genotype) +
+            ggtitle(paste( "Gene profiles", sep=" ")) +
+            xlab("condition") +
+            ylab("means")
+    }
     
     if(show.plot) 
     {
