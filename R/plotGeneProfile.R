@@ -130,7 +130,7 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
             facet_grid(.~genotype) +
             ggtitle(paste( "Gene profiles", sep=" ")) +
             xlab("condition") +
-            ylab("means")
+            ylab("log(means)")
     } else {
         pp <- ggplot(gn.means, aes(y=gn.means$means, x=gn.means$condition, color=genename)) +
             geom_point() +
