@@ -1,6 +1,6 @@
 ProcessCountDataFrameForPlotCounts <- function(gene.name.normalized.counts, 
-                                            design.matrix, gene.name,
-                                            symbols=NULL) 
+                                               design.matrix, gene.name,
+                                               symbols=NULL) 
 {
     if(length(gene.name) > 1)
     {
@@ -32,11 +32,12 @@ ProcessCountDataFrameForPlotCounts <- function(gene.name.normalized.counts,
             gene.name.norm.counts.t <- rbind(gene.name.norm.counts.t, gene.df)
             i <- i+1
         }
+        gene.name.norm.counts.t$means <- as.numeric(levels(gene.name.norm.counts.t$means))
         gene.name.norm.counts.t$gname <- paste0(gene.name.norm.counts.t$genotype, gene.name.norm.counts.t$genename)
     } else {
         gene.name.normalized.counts <- gene.name.normalized.counts[which(rownames(gene.name.normalized.counts) %in% gene.name), , drop=FALSE]
         gene.name.norm.counts.t <- as.data.frame(t(gene.name.normalized.counts))
-        gene.name.norm.counts.t$genename <- gene.name
+        gene.name.norm.counts.t$genename <- as.factor(gene.name)
         gene.name.norm.counts.t$condition <- as.character(design.matrix[which(rownames(design.matrix) %in% rownames(gene.name.norm.counts.t)), "condition"])
         gene.name.norm.counts.t$genotype <- as.character(design.matrix[which(rownames(design.matrix) %in% rownames(gene.name.norm.counts.t)), "genotype"])
         gene.name.norm.counts.t$log2counts <- log2(gene.name.norm.counts.t[,1])
@@ -120,18 +121,15 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
         gene.name.normalized.counts=normalized.counts,
         design.matrix=design.matrix, gene.name=gene.name.r, symbols=gene.names)
     
-    pp <- ggplot(gn.means, 
-                 aes_string(x="condition", y="means", color="gname")) + 
-        # geom_point() + 
-        geom_line() +
-        # line_smooth(data=gn.means, 
-                    # mapping=aes(x=as.numeric(as.factor(condition)), 
-                                # y=means, 
-                                # color=gname), 
-                    # method="lm", se=FALSE, fullrange=FALSE) +
-        # facet_grid(.~genotype) +
-        ggtitle(paste( "Gene profiles", sep=" "))
-    pp
+    pp <- ggplot(gn.means, aes(y=gn.means$means, x=gn.means$condition, color=genename)) +
+        geom_point() +
+        geom_line(aes(y=gn.means$means, x=as.numeric(gn.means$condition), 
+                      color=genename)) + 
+        facet_grid(.~genotype) +
+        ggtitle(paste( "Gene profiles", sep=" ")) +
+        xlab("condition") +
+        ylab("means")
+    
     if(show.plot) 
     {
         if(plotly.flag)
