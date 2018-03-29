@@ -1,14 +1,14 @@
 	genotype	condition	classic	gcondition	description
-S3HC5_S8	KO	HC5	CTRL	KOHC5	Home Cage Control
-S3HC5_S12	KO	HC5	CTRL	KOHC5	Home Cage Control
-S3HC5_S23	KO	HC5	CTRL	KOHC5	Home Cage Control
-S3HC5_S28	KO	HC5	CTRL	KOHC5	Home Cage Control
-S3HC5_S37	KO	HC5	CTRL	KOHC5	Home Cage Control
-S3SD5_S2	KO	SD5	TREA	KOSD5	Sleep Deprivation 5h
-S3SD5_S7	KO	SD5	TREA	KOSD5	Sleep Deprivation 5h
-S3SD5_S14	KO	SD5	TREA	KOSD5	Sleep Deprivation 5h
-S3SD5_S21	KO	SD5	TREA	KOSD5	Sleep Deprivation 5h
-S3SD5_S30	KO	SD5	TREA	KOSD5	Sleep Deprivation 5h
+S3HC5_S8	S3	HC5	CTRL	S3HC5	Home Cage Control
+S3HC5_S12	S3	HC5	CTRL	S3HC5	Home Cage Control
+S3HC5_S23	S3	HC5	CTRL	S3HC5	Home Cage Control
+S3HC5_S28	S3	HC5	CTRL	S3HC5	Home Cage Control
+S3HC5_S37	S3	HC5	CTRL	S3HC5	Home Cage Control
+S3SD5_S2	S3	SD5	TREA	S3SD5	Sleep Deprivation 5h
+S3SD5_S7	S3	SD5	TREA	S3SD5	Sleep Deprivation 5h
+S3SD5_S14	S3	SD5	TREA	S3SD5	Sleep Deprivation 5h
+S3SD5_S21	S3	SD5	TREA	S3SD5	Sleep Deprivation 5h
+S3SD5_S30	S3	SD5	TREA	S3SD5	Sleep Deprivation 5h
 WTHC5_S3	WT	HC5	CTRL	WTHC5	Home Cage Control
 WTHC5_S15	WT	HC5	CTRL	WTHC5	Home Cage Control
 WTHC5_S20	WT	HC5	CTRL	WTHC5	Home Cage Control
