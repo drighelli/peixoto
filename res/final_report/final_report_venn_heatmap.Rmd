@@ -183,8 +183,8 @@ venn.padgj.thr <- 0.1
 desMat <- cbind(designMatrix, ruvedSExprData$W)
 colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
-cc <- c("WTSD5 - WTHC5", "KOHC5 - WTHC5",
-        "KOSD5 - WTSD5", "KOSD5 - KOHC5")
+cc <- c("WTSD5 - WTHC5", "S3HC5 - WTHC5",
+        "S3SD5 - WTSD5", "S3SD5 - S3HC5")
 
 rescList1 <- applyEdgeR(counts=filteredCountsProp, design.matrix=desMat,
                         factors.column="gcondition", 
@@ -253,7 +253,7 @@ wt.sign.genes.entrez <- rownames(res.o)[which(res.o$FDR < venn.padgj.thr)]
 
 ```
 
-## Knock Out Home Cage control VS Wild Type Home Cage Controls 
+## Shank3 Home Cage control VS Wild Type Home Cage Controls 
 
 ### pvalue histogram
 
@@ -297,7 +297,7 @@ kowthc5.sign.genes.entrez <- rownames(res.rs2.o)[which(res.rs2.o$FDR < venn.padg
 ```
 
 
-## Knock Out Sleed Deprivation VS Wild Type Sleep Deprivation
+## Shank3 Sleed Deprivation VS Wild Type Sleep Deprivation
 
 ### pvalue histogram
 
@@ -349,7 +349,7 @@ kowtsd5 <- res.o[which(res.o$FDR < padj.thr),]
 kowtsd5.sign.genes.entrez <- rownames(res.o)[which(res.o$FDR < venn.padgj.thr)]
 ```
 
-## Knock Out Sleep Deprivation VS Knock Out Home Cage Control
+## Shank3 Sleep Deprivation VS Shank3 Home Cage Control
 
 ### pvalue histogram
 
@@ -431,8 +431,8 @@ source("../../R/venn2.R")
 gene.map <- convertGenesViaMouseDb(gene.list=rownames(normExprData),
                                    fromType="ENTREZID", toType="SYMBOL")
 venn <- Venn2de(x=kowthc5.sign.genes.entrez, y=kowtsd5.sign.genes.entrez, 
-        label1="KOHC5_WTHC5", label2="KOSD5_WTSD5",
-        title="KOHC5_WTHC5 venn KOSD5_WTSD5", plot.dir="./",
+        label1="S3HC5_WTHC5", label2="S3SD5_WTSD5",
+        title="S3HC5_WTHC5 venn S3SD5_WTSD5", plot.dir="./",
         conversion.map=gene.map)
 ```
 
