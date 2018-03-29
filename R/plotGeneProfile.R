@@ -32,8 +32,10 @@ ProcessCountDataFrameForPlotCounts <- function(gene.name.normalized.counts,
             gene.name.norm.counts.t <- rbind(gene.name.norm.counts.t, gene.df)
             i <- i+1
         }
+        gene.name.norm.counts.t <- gene.name.norm.counts.t[order(gene.name.norm.counts.t$means),]
         gene.name.norm.counts.t$means <- as.numeric(levels(gene.name.norm.counts.t$means))
         gene.name.norm.counts.t$gname <- paste0(gene.name.norm.counts.t$genotype, gene.name.norm.counts.t$genename)
+        gene.name.norm.counts.t <- gene.name.norm.counts.t[order(gene.name.norm.counts.t$genotype),]
     } else {
         gene.name.normalized.counts <- gene.name.normalized.counts[which(rownames(gene.name.normalized.counts) %in% gene.name), , drop=FALSE]
         gene.name.norm.counts.t <- as.data.frame(t(gene.name.normalized.counts))
@@ -104,6 +106,7 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
     if(length(idx) > 0 )
     {
         gene.name.r <- rownames(res.o)[idx]
+        gene.names <- res.o$gene[idx]
     } else {
         ## take the gene directly from the counts rownames 
         ## res.o not useful in this case
