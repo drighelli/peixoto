@@ -44,6 +44,7 @@ ProcessCountDataFrameForPlotCounts <- function(gene.name.normalized.counts,
         gene.name.norm.counts.t$genotype <- as.character(design.matrix[which(rownames(design.matrix) %in% rownames(gene.name.norm.counts.t)), "genotype"])
         gene.name.norm.counts.t$log2counts <- log2(gene.name.norm.counts.t[,1])
         gene.name.norm.counts.t$counts <- gene.name.norm.counts.t[,1]
+        gene.name.norm.counts.t$genename <- rep(symbols, times=dim(gene.name.norm.counts.t)[1])
     }
     return(gene.name.norm.counts.t)
 }
@@ -157,4 +158,94 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
         return(pp)
     }
 }
+
+
+geneGroupProfileRows <- function(normalized.counts, design.matrix, 
+                             gene.names, res.o=NULL, show.plot=FALSE, 
+                             plotly.flag=FALSE, log.flag=FALSE) 
+{
+    idx <- which(res.o$gene %in% gene.names)
+    if(length(idx) > 0 )
+    {
+        gene.name.r <- rownames(res.o)[idx]
+        gene.names <- res.o$gene[idx]
+    } else {
+        ## take the gene directly from the counts rownames 
+        ## res.o not useful in this case
+        idx <- which(rownames(res.o) %in% gene.names)
+        if(length(idx) > 0 )
+        {
+            gene.name.r <- gene.names
+        } else {
+            warning("genes ", gene.names," not present!")
+            return()
+        }
+        
+    }
+    
+    
+    i=1
+    for(gene in gene.name.r)
+    {
+        gn.count <- ProcessCountDataFrameForPlotCounts(
+            gene.name.normalized.counts=normalized.counts,
+            design.matrix=design.matrix, gene.name=gene, symbols=gene.names[[i]])
+        rownames(gn.count) <- NULL
+        
+        if(i==1) {
+            gn.countss <- gn.count[,c(2:6)]
+        } else {
+            gn.countss <- rbind(gn.countss, gn.count[,c(2:6)])
+        }
+        i=i+1
+    }
+    # gn.means <- ProcessCountDataFrameForPlotCounts(
+    #     gene.name.normalized.counts=normalized.counts,
+    #     design.matrix=design.matrix, gene.name=gene.name.r, symbols=gene.names)
+    
+        
+    if(log.flag)
+    {
+        pp <- ggplot(gn.countss, aes(y=gn.countss$log2counts, x=gn.countss$condition, color=genename)) +
+            geom_point() +
+            stat_smooth(data=gn.countss, 
+                mapping=aes(
+                    x=as.numeric(as.factor(condition)),
+                    y=gn.countss$log2counts,
+                    color=genename),
+                method="lm",
+                se=FALSE, fullrange=FALSE) +
+            facet_grid(genename~genotype) +
+            ggtitle(paste( "Gene profiles", sep=" ")) +
+            xlab("condition") +
+            ylab("log(counts)")
+    } else {
+        pp <- ggplot(gn.countss, aes(y=gn.countss$counts, x=gn.countss$condition, color=genename)) +
+            geom_point() +
+            stat_smooth(data=gn.countss, 
+                        mapping=aes(
+                            x=as.numeric(as.factor(condition)),
+                            y=gn.countss$counts,
+                            color=genename),
+                        method="lm",
+                        se=FALSE, fullrange=FALSE) +
+            facet_grid(genename~genotype) +
+            ggtitle(paste( "Gene profiles", sep=" ")) +
+            xlab("condition") +
+            ylab("means")
+    }
+    
+    if(show.plot) 
+    {
+        if(plotly.flag)
+        {
+            ggplotly(pp)
+        } else {
+            pp
+        }
+    } else {
+        return(pp)
+    }
+}
+
 
