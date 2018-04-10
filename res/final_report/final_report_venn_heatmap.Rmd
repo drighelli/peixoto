@@ -512,7 +512,7 @@ WriteDataFrameAsTsv(data.frame.to.save=gene.map, file.name.path="clustered_sub_g
 ## heatmap K-means
 ```{r}
 ph1 <- pheatmap(log(de.genes.counts[filter2,]+1), cluster_cols=TRUE, scale="row", 
-            color=pal, border_color=NA, fontsize_row=10, kmeans_k=4)
+            color=pal, border_color=NA, fontsize_row=10, kmeans_k=6)
 ```
 
 

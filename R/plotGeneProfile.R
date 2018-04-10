@@ -162,7 +162,8 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
 
 geneGroupProfileRows <- function(normalized.counts, design.matrix, 
                              gene.names, res.o=NULL, show.plot=FALSE, 
-                             plotly.flag=FALSE, log.flag=FALSE) 
+                             plotly.flag=FALSE, log.flag=FALSE,
+                             scale_facets="free_y") 
 {
     idx <- which(res.o$gene %in% gene.names)
     if(length(idx) > 0 )
@@ -215,7 +216,7 @@ geneGroupProfileRows <- function(normalized.counts, design.matrix,
                     color=genename),
                 method="lm",
                 se=FALSE, fullrange=FALSE) +
-            facet_grid(genename~genotype) +
+            facet_grid(genename~genotype, scales=scale_facets) +
             ggtitle(paste( "Gene profiles", sep=" ")) +
             xlab("condition") +
             ylab("log(counts)")
@@ -229,7 +230,7 @@ geneGroupProfileRows <- function(normalized.counts, design.matrix,
                             color=genename),
                         method="lm",
                         se=FALSE, fullrange=FALSE) +
-            facet_grid(genename~genotype) +
+            facet_grid(genename~genotype, scales=scale_facets) +
             ggtitle(paste( "Gene profiles", sep=" ")) +
             xlab("condition") +
             ylab("means")
