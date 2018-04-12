@@ -2,6 +2,7 @@ Venn3de <- function(x, y, z, label1, label2, label3,
                     title="Venn Diagram", 
                     intersection.flag=TRUE, 
                     intersection.exclusion.flag=FALSE, 
+                    save.plot=FALSE,
                     plot.dir=NULL, 
                     enrich.lists.flag=FALSE, 
                     conversion.map=NULL)
@@ -38,7 +39,14 @@ Venn3de <- function(x, y, z, label1, label2, label3,
     require("limma")
     limma::vennDiagram(MAT, circle.col= c("red","green","yellow"), main=title)
     
-    # dev.print(device=pdf, file=file.path.name, width=10, height=10)
+    if(save.plot)
+    {
+        dev.new()
+        limma::vennDiagram(MAT, circle.col= c("red","green","yellow"), main=title)
+        dev.print(device=pdf, file=file.path.name, width=20, height=20)
+        graphics.off()
+    }
+    
     ab <- intersect(a, b)
     bc <- intersect(b, c)
     ac <- intersect(a, c)
@@ -258,7 +266,7 @@ UpdateFolderPath <- function(path, ...) {
     } else {
         stop("provide a string to append to ", path)
     }
-    dir.create(path, recursive = TRUE, showWarnings = FALSE)
+    dir.create(path, recursive=TRUE, showWarnings=FALSE)
     return(path)
 }
 

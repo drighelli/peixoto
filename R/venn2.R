@@ -1,10 +1,11 @@
-Venn2de <- function(x, y, label1, label2, title, plot.dir, conversion.map=NULL)
+Venn2de <- function(x, y, label1, label2, title, plot.dir, conversion.map=NULL,
+                    save.plot=FALSE)
 {
     
     require(limma)
     
     # out.path <- UpdateFolderPath(plot.dir, "venn2")
-    out.path <- file.path(plot.dir, "venn2")
+    out.path <- file.path(plot.dir, "Venn2")
     dir.create(out.path)
     
     a15 <- x
@@ -67,7 +68,19 @@ Venn2de <- function(x, y, label1, label2, title, plot.dir, conversion.map=NULL)
     
     # dev.new()
     limma::vennDiagram(MAT, circle.col= c("red","green"), main=title)
-    
+    if(save.plot)
+    {
+        outputName <- UpdateFilename(filename="VennDiagram", 
+                                     label1, label2, 
+                                     extension="pdf")
+        out.path.name <- UpdateFolderPath(plot.dir, "Venn2")
+        prefix="venn2"
+        file.path.name <- file.path(out.path.name, outputName)
+        dev.new()
+        limma::vennDiagram(MAT, circle.col= c("red","green"), main=title)
+        dev.print(device=pdf, file=file.path.name, width=10, height=10)
+        graphics.off()
+    }
     # dev.print(device = pdf, file=outputName, width=10, height=10)
     # dev.off()
     # print(c15)

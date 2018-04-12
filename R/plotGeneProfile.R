@@ -100,8 +100,9 @@ geneProfileLucia <- function(normalized.counts, design.matrix,
 
 
 geneGroupProfile <- function(normalized.counts, design.matrix, 
-                             gene.names, res.o=NULL, show.plot=FALSE, 
-                             plotly.flag=FALSE, log.flag=FALSE) 
+                            gene.names, res.o=NULL, 
+                            show.plot=FALSE, 
+                            plotly.flag=FALSE, log.flag=FALSE) 
 {
     idx <- which(res.o$gene %in% gene.names)
     if(length(idx) > 0 )
@@ -158,7 +159,6 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
         return(pp)
     }
 }
-
 
 geneGroupProfileRows <- function(normalized.counts, design.matrix, 
                              gene.names, res.o=NULL, show.plot=FALSE, 

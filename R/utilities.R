@@ -24,6 +24,8 @@ convertGenesViaMouseDb <- function(gene.list, fromType=c("SYMBOL", "ENTREZID"),
                                                 fromType)]
     indsna <- is.na(annotated.map[col.check])
     if(sum(indsna) > 0) annotated.map <- annotated.map[-which(indsna),]
+    dupl <- duplicated(annotated.map)
+    if(sum(dupl) > 0) annotated.map <- annotated.map[-which(dupl),]
     return(annotated.map)
                                                    
 }
