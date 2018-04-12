@@ -160,10 +160,11 @@ geneGroupProfile <- function(normalized.counts, design.matrix,
     }
 }
 
-geneGroupProfileRows <- function(normalized.counts, design.matrix, 
-                             gene.names, res.o=NULL, show.plot=FALSE, 
-                             plotly.flag=FALSE, log.flag=FALSE,
-                             scale_facets="free_y") 
+
+geneGroupProfileRev <- function(normalized.counts, design.matrix, 
+                             gene.names, res.o=NULL, 
+                             show.plot=FALSE, 
+                             plotly.flag=FALSE, log.flag=FALSE) 
 {
     idx <- which(res.o$gene %in% gene.names)
     if(length(idx) > 0 )
@@ -183,14 +184,77 @@ geneGroupProfileRows <- function(normalized.counts, design.matrix,
         }
         
     }
+    gn.means <- ProcessCountDataFrameForPlotCounts(
+        gene.name.normalized.counts=normalized.counts,
+        design.matrix=design.matrix, gene.name=gene.name.r, symbols=gene.names)
+    gn.means <- gn.means[order(gn.means$condition),]
+    
+    if(log.flag)
+    {
+        pp <- ggplot(gn.means, aes(y=log(gn.means$means), x=gn.means$genotype, color=genename)) +
+            geom_point() +
+            geom_line(aes(y=log(gn.means$means), x=as.numeric(gn.means$genotype), 
+                          color=genename)) + 
+            facet_grid(.~condition) +
+            ggtitle(paste( "Gene profiles", sep=" ")) +
+            xlab("genotype") +
+            ylab("log(means)")
+    } else {
+        pp <- ggplot(gn.means, aes(y=gn.means$means, x=gn.means$genotype, color=genename)) +
+            geom_point() +
+            geom_line(aes(y=gn.means$means, x=as.numeric(gn.means$genotype), 
+                          color=genename)) + 
+            facet_grid(.~condition) +
+            ggtitle(paste( "Gene profiles", sep=" ")) +
+            xlab("genotype") +
+            ylab("means")
+    }
+    
+    if(show.plot) 
+    {
+        if(plotly.flag)
+        {
+            ggplotly(pp)
+        } else {
+            pp
+        }
+    } else {
+        return(pp)
+    }
+}
+
+
+geneGroupProfileRows <- function(normalized.counts, design.matrix, 
+                             gene.names, res.o=NULL, show.plot=FALSE, 
+                             plotly.flag=FALSE, log.flag=FALSE,
+                             scale_facets="free_y") 
+{
+    idx <- which(res.o$gene %in% gene.names)
+    if(length(idx) > 0 )
+    {
+        gene.name.r <- rownames(res.o)[idx]
+        gene.names <- res.o[idx,]
+    } else {
+        ## take the gene directly from the counts rownames 
+        ## res.o not useful in this case
+        idx <- which(rownames(res.o) %in% gene.names)
+        if(length(idx) > 0 )
+        {
+            gene.name.r <- gene.names
+        } else {
+            warning("genes ", gene.names," not present!")
+            return()
+        }
+        
+    }
     
     
     i=1
-    for(gene in gene.name.r)
+    for(gene in gene.names$check)
     {
         gn.count <- ProcessCountDataFrameForPlotCounts(
             gene.name.normalized.counts=normalized.counts,
-            design.matrix=design.matrix, gene.name=gene, symbols=gene.names[[i]])
+            design.matrix=design.matrix, gene.name=gene, symbols=gene.names$gene[i])
         rownames(gn.count) <- NULL
         
         if(i==1) {
@@ -203,6 +267,8 @@ geneGroupProfileRows <- function(normalized.counts, design.matrix,
     # gn.means <- ProcessCountDataFrameForPlotCounts(
     #     gene.name.normalized.counts=normalized.counts,
     #     design.matrix=design.matrix, gene.name=gene.name.r, symbols=gene.names)
+    
+    gn.countss <- gn.countss[order(gn.countss$genename),]
     
         
     if(log.flag)
@@ -249,4 +315,98 @@ geneGroupProfileRows <- function(normalized.counts, design.matrix,
     }
 }
 
+
+
+geneGroupProfileRowsRev <- function(normalized.counts, design.matrix, 
+                                 gene.names, res.o=NULL, show.plot=FALSE, 
+                                 plotly.flag=FALSE, log.flag=FALSE,
+                                 scale_facets="free_y") 
+{
+    idx <- which(res.o$gene %in% gene.names)
+    if(length(idx) > 0 )
+    {
+        gene.name.r <- rownames(res.o)[idx]
+        gene.names <- res.o[idx,]
+    } else {
+        ## take the gene directly from the counts rownames 
+        ## res.o not useful in this case
+        idx <- which(rownames(res.o) %in% gene.names)
+        if(length(idx) > 0 )
+        {
+            gene.name.r <- gene.names
+        } else {
+            warning("genes ", gene.names," not present!")
+            return()
+        }
+        
+    }
+    
+    
+    i=1
+    for(gene in gene.names$check)
+    {
+        gn.count <- ProcessCountDataFrameForPlotCounts(
+            gene.name.normalized.counts=normalized.counts,
+            design.matrix=design.matrix, gene.name=gene, symbols=gene.names$gene[i])
+        rownames(gn.count) <- NULL
+        
+        if(i==1) {
+            gn.countss <- gn.count[,c(2:6)]
+        } else {
+            gn.countss <- rbind(gn.countss, gn.count[,c(2:6)])
+        }
+        i=i+1
+    }
+    # gn.means <- ProcessCountDataFrameForPlotCounts(
+    #     gene.name.normalized.counts=normalized.counts,
+    #     design.matrix=design.matrix, gene.name=gene.name.r, symbols=gene.names)
+    
+    gn.countss <- gn.countss[order(gn.countss$condition),]
+    gn.countss <- gn.countss[order(gn.countss$genename),]
+    
+    
+    
+    if(log.flag)
+    {
+        pp <- ggplot(gn.countss, aes(y=gn.countss$log2counts, x=gn.countss$genotype, color=genename)) +
+            geom_point() +
+            stat_smooth(data=gn.countss, 
+                        mapping=aes(
+                            x=as.numeric(as.factor(genotype)),
+                            y=gn.countss$log2counts,
+                            color=genename),
+                        method="lm",
+                        se=FALSE, fullrange=FALSE) +
+            facet_grid(genename~condition, scales=scale_facets) +
+            ggtitle(paste( "Gene profiles", sep=" ")) +
+            xlab("genotype") +
+            ylab("log(counts)")
+    } else {
+        pp <- ggplot(gn.countss, aes(y=gn.countss$counts, x=gn.countss$genotype, color=genename)) +
+            geom_point() +
+            stat_smooth(data=gn.countss, 
+                        mapping=aes(
+                            x=as.numeric(as.factor(genotype)),
+                            y=gn.countss$counts,
+                            color=genename),
+                        method="lm",
+                        se=FALSE, fullrange=FALSE) +
+            facet_grid(genename~condition, scales=scale_facets) +
+            ggtitle(paste( "Gene profiles", sep=" ")) +
+            xlab("genotype") +
+            ylab("means")
+    }
+    
+    if(show.plot) 
+    {
+        if(plotly.flag)
+        {
+            ggplotly(pp)
+        } else {
+            pp
+        }
+    } else {
+        return(pp)
+    }
+}
 
