@@ -134,20 +134,22 @@ ggp1 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData),
                     colorColname="genotype", xPCA="PC1", yPCA="PC2", 
                     plotly.flag=FALSE, show.plot.flag=FALSE, save.plot=FALSE,
                     prefix.plot=NULL)
-# ggp2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), 
-#                     design.matrix=designMatrix, shapeColname="condition", 
-#                     colorColname="genotype", xPCA="PC2", yPCA="PC3", 
-#                     plotly.flag=FALSE, show.plot.flag=FALSE, save.plot=FALSE,
-#                     prefix.plot=NULL)
-# ggp3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData), 
-#                     design.matrix=designMatrix, shapeColname="condition", 
-#                     colorColname="genotype", xPCA="PC1", yPCA="PC3", 
-#                     plotly.flag=FALSE, show.plot.flag=FALSE, save.plot=FALSE,
-#                     prefix.plot=NULL)
-# plotly::subplot(ggp1, ggp2, ggp3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
-ggplotly(ggp1)
+ggp2 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData),
+                    design.matrix=designMatrix, shapeColname="condition",
+                    colorColname="genotype", xPCA="PC2", yPCA="PC3",
+                    plotly.flag=FALSE, show.plot.flag=FALSE, save.plot=FALSE,
+                    prefix.plot=NULL)
+ggp3 <- PlotPCAPlotlyFunction(counts.data.frame=log1p(normExprData),
+                    design.matrix=designMatrix, shapeColname="condition",
+                    colorColname="genotype", xPCA="PC1", yPCA="PC3",
+                    plotly.flag=FALSE, show.plot.flag=FALSE, save.plot=FALSE,
+                    prefix.plot=NULL)
+plotly::subplot(ggp1, ggp2, ggp3, nrows=2, margin = 0.1, titleX=TRUE, titleY=TRUE)
+
 dir.create("plots")
-save_plot(filename="plots/PCA.pdf", plot=ggp1)
+save_plot(filename="plots/PC1_PC2.pdf", plot=ggp1)
+save_plot(filename="plots/PC2_PC3.pdf", plot=ggp2)
+save_plot(filename="plots/PC1_PC3.pdf", plot=ggp3)
 
 pal <- RColorBrewer::brewer.pal(9, "Set1")
 plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
@@ -336,7 +338,7 @@ gene.map <- convertGenesViaMouseDb(gene.list=rownames(normExprData),
 venn <- Venn2de(x=kowthc5.sign.genes.entrez, y=kowtsd5.sign.genes.entrez, 
         label1="S3HC5_WTHC5", label2="S3SD5_WTSD5",
         title="S3HC5_WTHC5 venn S3SD5_WTSD5", plot.dir="./",
-        conversion.map=gene.map)
+        conversion.map=gene.map, save.plot=FALSE)
 ```
 
 We take the results of three contrasts. 
@@ -351,8 +353,8 @@ venn3 <- Venn3de(x=kowthc5.sign.genes.entrez, y=kowtsd5.sign.genes.entrez,
                  z=kowtrs2.sign.genes.entrez,
         label1="S3HC5_WTHC5", label2="S3SD5_WTSD5", label3="S3RS2_WTRS2",
         title="S3HC5_WTHC5 - S3SD5_WTSD5 - S3RS2_WTRS2", enrich.lists.flag=FALSE,
-        plot.dir="./",
-        conversion.map=gene.map)
+        plot.dir="./", intersection.exclusion.flag=FALSE,
+        conversion.map=gene.map, save.plot=FALSE)
 ```
 
 # Heatmaps
@@ -363,14 +365,16 @@ An heatmap of the union of the genes identified.
 
 ```{r}
 source("../../R/heatmapFunctions.R")
-de.genes.entr <- union(rownames(venn$int), rownames(venn$XnoY))
-de.genes.entr <- union(de.genes.entr, rownames(venn$YnoX))
+# de.genes.entr <- union(rownames(venn$int), rownames(venn$XnoY))
+# de.genes.entr <- union(de.genes.entr, rownames(venn$YnoX))
 
 de.genes.entr <- union(kowthc5.sign.genes.entrez, kowtsd5.sign.genes.entrez)
 de.genes.entr <- union(de.genes.entr, kowtrs2.sign.genes.entrez)
 
+# de.genes.entr <- c(de.genes.entr, "12140")
 gene.map <- convertGenesViaMouseDb(gene.list=de.genes.entr, 
                             fromType="ENTREZID")
+
 de.genes.symb <- attachGeneColumnToDf(as.data.frame(de.genes.entr, 
                                                     row.names=de.genes.entr), 
                                     genesMap=gene.map, 
@@ -407,9 +411,11 @@ with k=5 the samples S3RS2 seems to be mixed with the S3SD5 ones.
 ```{r}
 ph1 <- pheatmap(log(de.genes.counts[filter2,]+1), cluster_cols=TRUE, scale="row", 
                 color=pal, border_color=NA, fontsize_row=5)
+save_pheatmap_pdf(filename="plots/heatmap_hierarchical.pdf", plot=ph1)
 
 ph1 <- pheatmap(log(de.genes.counts[filter2,]+1), cluster_cols=TRUE, scale="row", 
             color=pal, border_color=NA, fontsize_row=10, kmeans_k=5)
+save_pheatmap_pdf(filename="plots/heatmap_kmeans5.pdf", plot=ph1)
 
 clusterized.genes <- as.data.frame(ph1$kmeans$cluster)
 
@@ -420,7 +426,7 @@ converted.clusterized.gens <- attachGeneColumnToDf(mainDf=clusterized.genes, gen
 converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Gm2444")]  <- "100039826" ## not annotated in ncbi
 converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Entrez:210541")]  <- "210541" ## not annotated in ncbi
 converted.clusterized.gens <- converted.clusterized.gens[order(converted.clusterized.gens$`ph1$kmeans$cluster`),]
-WriteDataFrameAsTsv(data.frame.to.save=converted.clusterized.gens, file.name.path="clustered_genes_by_kmeans5")
+WriteDataFrameAsTsv(data.frame.to.save=converted.clusterized.gens, file.name.path="plots/clustered_genes_by_kmeans5")
 
 ```
 
@@ -433,6 +439,7 @@ ph1 <- pheatmap(log(de.genes.counts[filter2,]+1), cluster_cols=TRUE, scale="row"
 
 ph1 <- pheatmap(log(de.genes.counts[filter2,]+1), cluster_cols=TRUE, scale="row", 
             color=pal, border_color=NA, fontsize_row=10, kmeans_k=6)
+save_pheatmap_pdf(filename="plots/heatmap_kmeans6.pdf", plot=ph1)
 
 clusterized.genes <- as.data.frame(ph1$kmeans$cluster)
 
@@ -443,5 +450,39 @@ converted.clusterized.gens <- attachGeneColumnToDf(mainDf=clusterized.genes, gen
 converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Gm2444")]  <- "100039826" ## not annotated in ncbi
 converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Entrez:210541")]  <- "210541" ## not annotated in ncbi
 converted.clusterized.gens <- converted.clusterized.gens[order(converted.clusterized.gens$`ph1$kmeans$cluster`),]
-WriteDataFrameAsTsv(data.frame.to.save=converted.clusterized.gens, file.name.path="clustered_genes_by_kmeans6")
+WriteDataFrameAsTsv(data.frame.to.save=converted.clusterized.gens, file.name.path="plots/clustered_genes_by_kmeans6")
 ```
+
+## gene group profiles
+
+```{r}
+de.genes.entr <- c(de.genes.entr, "12140")#Fabp7
+de.genes.entr <- c(de.genes.entr, "26413")#Mapk1
+de.genes.entr <- c(de.genes.entr, "26417")#Mapk3
+gene.map <- convertGenesViaMouseDb(gene.list=de.genes.entr, 
+                            fromType="ENTREZID")
+
+de.genes.symb <- attachGeneColumnToDf(as.data.frame(de.genes.entr, 
+                                                    row.names=de.genes.entr), 
+                                    genesMap=gene.map, 
+                                    rowNamesIdentifier="ENTREZID", 
+                                    mapFromIdentifier="ENTREZID",
+                                    mapToIdentifier="SYMBOL")
+
+de.genes.symb$gene[which(de.genes.symb$de.genes.entr=="100039826")]  <- "Gm2444" ## not annotated in ncbi
+de.genes.symb$gene[which(de.genes.symb$de.genes.entr=="210541")]  <- "Entrez:210541" ## not
+
+g <- geneGroupProfile(normalized.counts=normExprData, design.matrix=designMatrix,
+            gene.names=c("Nr1d1", "Fabp7", "Per3"),
+            res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE, log.flag=TRUE)
+ggplotly(g)
+save_plot(filename=paste0("plots/", "Nr1d1_Fabp7_Per3", "_log_gene_profile.pdf"), plot=g)
+
+g <- geneGroupProfile(normalized.counts=normExprData, design.matrix=designMatrix,
+            gene.names=c("Jun", "Elk1", "Fosl2", "Mapk1", "Mapk3", "Mapk11"),
+            res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE, log.flag=TRUE)
+ggplotly(g)
+save_plot(filename=paste0("plots/", "Jun_Elk1_Fosl2_Mapk", "_log_gene_profile.pdf"), plot=g)
+
+```
+
