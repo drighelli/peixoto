@@ -299,7 +299,7 @@ geneGroupProfileRows <- function(normalized.counts, design.matrix,
             facet_grid(genename~genotype, scales=scale_facets) +
             ggtitle(paste( "Gene profiles", sep=" ")) +
             xlab("condition") +
-            ylab("means")
+            ylab("counts")
     }
     
     if(show.plot) 
@@ -394,7 +394,7 @@ geneGroupProfileRowsRev <- function(normalized.counts, design.matrix,
             facet_grid(genename~condition, scales=scale_facets) +
             ggtitle(paste( "Gene profiles", sep=" ")) +
             xlab("genotype") +
-            ylab("means")
+            ylab("counts")
     }
     
     if(show.plot) 

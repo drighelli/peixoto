@@ -360,33 +360,29 @@ filter[is.na(filter)] <- FALSE
 
 ```
 
-## Kmeans k=4
-With k=4 the clusters seem to be balanced and the samples are very well clustered for each combination of genotype and condition.
+## Heatmap gene by bene
+
 
 ```{r}
-ph1 <- pheatmap(log(de.genes.counts[filter2,]+1), cluster_cols=TRUE, scale="row", 
-            color=pal, border_color=NA, fontsize_row=10, kmeans_k=4)
-save_pheatmap_pdf(filename="plots/heatmap_kmeans_k4.pdf", plot=ph1)
 
-clusterized.genes <- as.data.frame(ph1$kmeans$cluster)
+idx <- which(!(rownames(de.genes.counts) %in% c("Nr1d1", "Fabp7", "Per3", 
+                        "Jun", "Elk1", "Fosl2", "Mapk1", "Mapk3", "Mapk11")))
+de.genes.counts1 <- de.genes.counts
+rownames(de.genes.counts1)[idx] <- ""
+ann.col <- desMat[, c(1:2)]
+ph1 <- pheatmap(log(de.genes.counts1[filter2,]+1), cluster_cols=TRUE, scale="row", 
+            color=pal, border_color=NA, fontsize_row=9, fontsize_col=9, 
+            annotation_col=ann.col)
 
-gene.map <- convertGenesViaMouseDb(gene.list=rownames(clusterized.genes), fromType="SYMBOL")
-converted.clusterized.gens <- attachGeneColumnToDf(mainDf=clusterized.genes, genesMap=gene.map, 
-                    rowNamesIdentifier="SYMBOL", mapFromIdentifier="SYMBOL", mapToIdentifier="ENTREZID")
-
-converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Gm2444")]  <- "100039826" ## not annotated in ncbi
-converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Entrez:210541")]  <- "210541" ## not annotated in ncbi
-converted.clusterized.gens <- converted.clusterized.gens[order(converted.clusterized.gens$`ph1$kmeans$cluster`),]
-WriteDataFrameAsTsv(data.frame.to.save=converted.clusterized.gens, file.name.path="plots/clustered_genes_by_kmeans4")
+save_pheatmap_pdf(filename="plots/heatmap.pdf", plot=ph1, width=20, height=20)
 ```
 
-## Kmeans k=5
-with k=5 the clusters seem to be a bit unbalanced and the samples seem not so well clustered.
+## heatmap kmeans k=5
 
 ```{r}
 ph1 <- pheatmap(log(de.genes.counts[filter2,]+1), cluster_cols=TRUE, scale="row", 
-            color=pal, border_color=NA, fontsize_row=10, kmeans_k=5)
-save_pheatmap_pdf(filename="plots/heatmap_kmeans_k5.pdf", plot=ph1)
+            color=pal, border_color=NA, fontsize_row=10, kmeans_k=5, annotation_col=ann.col)
+save_pheatmap_pdf(filename="plots/heatmap_kmeans_k5.pdf", plot=ph1, width=20, height=20)
 
 clusterized.genes <- as.data.frame(ph1$kmeans$cluster)
 
@@ -410,13 +406,15 @@ g <- geneGroupProfileRows(normalized.counts=normExprData, design.matrix=designMa
             gene.names=c("Nr1d1", "Fabp7", "Per3"),
             res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE, log.flag=FALSE)
 ggplotly(g)
-save_plot(filename=paste0("plots/", "Nr1d1_Fabp7_Per3", "_log_gene_profile_genotype.pdf"), plot=g)
+save_plot(filename=paste0("plots/", "Nr1d1_Fabp7_Per3", "_log_gene_profile_genotype.pdf"), plot=g,
+        base_height=15, base_width=15)
 
 g <- geneGroupProfileRows(normalized.counts=normExprData, design.matrix=designMatrix,
             gene.names=c("Jun", "Elk1", "Fosl2", "Mapk1", "Mapk3", "Mapk11"),
             res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE, log.flag=TRUE)
 ggplotly(g)
-save_plot(filename=paste0("plots/", "Jun_Elk1_Fosl2_Mapk", "_log_gene_profile_genotype.pdf"), plot=g) 
+save_plot(filename=paste0("plots/", "Jun_Elk1_Fosl2_Mapk", "_log_gene_profile_genotype.pdf"), plot=g,
+        base_height=15, base_width=15) 
 ```
 
 
@@ -427,11 +425,13 @@ g <- geneGroupProfileRowsRev(normalized.counts=normExprData, design.matrix=desig
             gene.names=c("Nr1d1", "Fabp7", "Per3"),
             res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE, log.flag=TRUE)
 ggplotly(g)
-save_plot(filename=paste0("plots/", "Nr1d1_Fabp7_Per3", "_log_gene_profile_condition.pdf"), plot=g)
+save_plot(filename=paste0("plots/", "Nr1d1_Fabp7_Per3", "_log_gene_profile_condition.pdf"), plot=g,
+        base_height=15, base_width=15)
 
 g <- geneGroupProfileRowsRev(normalized.counts=normExprData, design.matrix=designMatrix,
             gene.names=c("Jun", "Elk1", "Fosl2", "Mapk1", "Mapk3", "Mapk11"),
             res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE, log.flag=TRUE)
 ggplotly(g)
-save_plot(filename=paste0("plots/", "Jun_Elk1_Fosl2_Mapk", "_log_gene_profile_condition.pdf"), plot=g) 
+save_plot(filename=paste0("plots/", "Jun_Elk1_Fosl2_Mapk", "_log_gene_profile_condition.pdf"), plot=g,
+        base_height=15, base_width=15) 
 ```
