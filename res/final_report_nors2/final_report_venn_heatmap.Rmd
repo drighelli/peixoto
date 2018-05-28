@@ -376,12 +376,12 @@ ph1 <- pheatmap(log(de.genes.counts1[filter2,]+1), cluster_cols=TRUE, scale="row
 save_pheatmap_pdf(filename="plots/heatmap.pdf", plot=ph1, width=20, height=20)
 ```
 
-## heatmap kmeans k=5
+## heatmap kmeans k=4
 
 ```{r}
 ph1 <- pheatmap(log(de.genes.counts[filter2,]+1), cluster_cols=TRUE, scale="row", 
-            color=pal, border_color=NA, fontsize_row=10, kmeans_k=5, annotation_col=ann.col)
-save_pheatmap_pdf(filename="plots/heatmap_kmeans_k5.pdf", plot=ph1, width=20, height=20)
+            color=pal, border_color=NA, fontsize_row=10, kmeans_k=4, annotation_col=ann.col)
+save_pheatmap_pdf(filename="plots/heatmap_kmeans_k4.pdf", plot=ph1, width=20, height=20)
 
 clusterized.genes <- as.data.frame(ph1$kmeans$cluster)
 
@@ -392,7 +392,7 @@ converted.clusterized.gens <- attachGeneColumnToDf(mainDf=clusterized.genes, gen
 converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Gm2444")]  <- "100039826" ## not annotated in ncbi
 converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Entrez:210541")]  <- "210541" ## not annotated in ncbi
 converted.clusterized.gens <- converted.clusterized.gens[order(converted.clusterized.gens$`ph1$kmeans$cluster`),]
-WriteDataFrameAsTsv(data.frame.to.save=converted.clusterized.gens, file.name.path="plots/clustered_genes_by_kmeans5")
+WriteDataFrameAsTsv(data.frame.to.save=converted.clusterized.gens, file.name.path="plots/clustered_genes_by_kmeans4")
 ```
 
 
