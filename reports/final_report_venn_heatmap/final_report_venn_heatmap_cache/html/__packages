@@ -25,3 +25,6 @@ cowplot
 readxl
 AnnotationDbi
 org.Mm.eg.db
+plyr
+gplots
+pheatmap
