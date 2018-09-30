@@ -3,6 +3,9 @@
 ## Data
 All the needed data are in the [data](data) folder
 
+## Design
+The samples design is stored in the file [design/all_samples_short_names.tsv](design/all_samples_short_names.tsv).
+
 ## Differential Expression Analysis code
 The useful functions are stored in the [R](R) folder, while the workflow in Rmarkdown 
 format is in the [analysis_report.Rmd](analysis_report.Rmd) file.
