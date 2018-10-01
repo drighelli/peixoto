@@ -25,16 +25,17 @@ library(cowplot)
 ```
 
 # Description
-This is the report of the analysis made for the paper *(TITLE) AND AUTHORS*.
-*INSERT ABSTRACT*
+This is the report of the analysis made for the paper *Shank3 Modulates Sleep and Circadian Activity* 
+by *Ashley M. Ingiosi, Taylor Wintler, Hannah Schoch, Kristan G. Singletary, Dario Righelli, Leandro G. Roser, Davide Risso, Marcos G. Frank and Lucia Peixoto*.
+
+Autism Spectrum Disorder (ASD) is the most prevalent neurodevelopmental disorder in the US that often co-presents with sleep problems. Sleep impairments in ASD predict the severity of ASD core diagnostic symptoms and have a considerable impact on the quality of life of caregivers. However, little is known about the underlying molecular mechanism(s) of sleep impairments in ASD. In this study we investigated the role of Shank3, a high confidence ASD gene candidate, in the regulation of sleep. We show that Shank3 mutant mice have problems falling asleep despite accumulating sleep pressure. Using RNA-seq we show that sleep deprivation doubles the differences in gene expression between mutants and wild types and downregulates circadian transcription factors Per3, Dec2, and Rev-erb$\alpha$. Shank3 mutants also have trouble regulating locomotor activity in the absence of light. Overall, our study shows that Shank3 is an important modulator of sleep and circadian activity.
 
 # Importing data
 
 Importing data and filtering out those genes with cpm lesser than 1. 
 We use the *filtered.data* method in *NOISeq* package.
 
-
-```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=TRUE}
 countMatrix <- ReadDataFrameFromTsv(file.name.path="./data/refSEQ_countMatrix.txt")
 # head(countMatrix)
 
@@ -47,6 +48,19 @@ filteredCountsProp <- filterLowCounts(counts.dataframe=countMatrix,
                                     cond.col.name="gcondition",
                                     method.type="Proportion")
 ```
+
+
+# Plot PCA of log unnormalized data
+
+PCA Plot of filtered not-normalized data.
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp), 
+    design.matrix=designMatrix, 
+    shapeColname="condition", colorColname="genotype", xPCA="PC1", yPCA="PC2", 
+    plotly.flag=TRUE, show.plot.flag=TRUE, prefix.plot="Prop-Un-Norm")
+```
+
 
 # Control Genes
 
@@ -82,7 +96,7 @@ counts.neg.ctrls <- filteredCountsProp[ind.ctrls,]
 
 Loading Positive Control Genes to detect them during the differential expression step.
 
-```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+```{r}
 ## sleep deprivation
 sd.lit.pos.ctrls <- read_excel("./data/controls/SD_RS_PosControls_final.xlsx", 
                         sheet=1)
@@ -104,15 +118,36 @@ sd.pos.ctrls <- sd.pos.ctrls[-which(is.na(sd.pos.ctrls[,1])),]
 
 # Normalizations
 
-## TMM + RUVs Normalization
-Normalizing data with *TMM*, as implemented in *edgeR* package, and applying a *RUVs* method of *RUVSeq* package on normalized data, 
-in order to adjust the counts for the unwanted variation.
-We plot a PCA and an RLE plot on these data.
+## TMM Normalization
+
+Normalizing data with *TMM*, as implemented in *edgeR* package, and plotting 
+a PCA and an RLE plot of them.
 
 ```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
 normPropCountsUqua <- NormalizeData(data.to.normalize=filteredCountsProp, 
                                     norm.type="tmm", 
                                     design.matrix=designMatrix)
+
+PlotPCAPlotlyFunction(counts.data.frame=log1p(normPropCountsUqua), 
+                    design.matrix=designMatrix, shapeColname="condition", 
+                    colorColname="genotype", xPCA="PC1", yPCA="PC2", 
+                    plotly.flag=TRUE, show.plot.flag=TRUE, 
+                    prefix.plot="TMM-Norm")
+
+pal <- RColorBrewer::brewer.pal(9, "Set1")
+plotRLE(as.matrix(normPropCountsUqua), outline=FALSE, col=pal[designMatrix$gcondition])
+
+```
+
+## TMM + RUVs Normalization
+
+Applying a *RUVs* method of *RUVSeq* package on normalized data, 
+in order to adjust the counts for the unwanted variation.
+And of corse we plot a PCA and an RLE plot on these data.
+
+```{r eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+library(RUVSeq)
 neg.ctrl.list <- rownames(counts.neg.ctrls)
 groups <- makeGroups(designMatrix$gcondition)
 ruvedSExprData <- RUVs(as.matrix(round(normPropCountsUqua)), cIdx=neg.ctrl.list,
@@ -142,8 +177,8 @@ Here is a brief legend:
 
 * WTHC5: Wild Type Home Cage Control 5 days
 * WTSD5: Wild Type Sleep Deprivation 5 days.
-* S3HC5: Shank3 Home Cage Control 5 days.
-* S3SD5: Shank3 Sleep Deprivation 5 days.
+* KOHC5: Knock Out Home Cage Control 5 days.
+* KOSD5: Knock Out Sleep Deprivation 5 days.
 
 ```{r}
 
@@ -265,11 +300,11 @@ pos.df
 
 # Venn Diagram
 
-## S3HC5-WTHC5 vs S3SD5-WTSD5
+## KOHC5-WTHC5 vs KOSD5-WTSD5
 
 We take the results of the two contrasts. 
-*Shank3 Sleed Deprivation VS Wild Type Sleep Deprivation* and 
-*Shank3 Home Cage control VS Wild Type Home Cage Controls*.
+*Knock Out Sleed Deprivation VS Wild Type Sleep Deprivation* and 
+*Knock Out Home Cage control VS Wild Type Home Cage Controls *.
 And plot the results in a Venn Diagram
 
 ```{r}
@@ -286,7 +321,7 @@ venn <- Venn2de(x=kowthc5.sign.genes.entrez, y=kowtsd5.sign.genes.entrez,
 
 # Heatmaps
 
-Setting up the data structures for the heatmap.
+Setting up the data structures for the heatmps.
 
 ```{r}
 source("./R/heatmapFunctions.R")
@@ -327,19 +362,78 @@ filter[is.na(filter)] <- FALSE
 
 ```
 
-## heatmap gene by gene organized as kmeans cluster
-```{r}
+## Heatmap gene by bene
 
-idx <- which(!(rownames(de.genes.counts) %in% c("Nr1d1", "Fabp7", "Per3", 
-                        "Jun", "Elk1", "Fosl2", "Mapk1", "Mapk3", "Mapk11")))
+```{r}
+gene_names <- c("Nr1d1", "Fabp7", "Per3", "Jun", "Elk1", "Fosl2", "Mapk1", 
+                "Mapk3", "Mapk11", "Hmgcr", "Insig1", "Nfil3", "Stat4",
+                "Kcnv1", "Kcnk1", "Kcnk2", "Dusp10", "Dusp3", "Ptprj",
+                "Cntn1", "Ntrk2", "Reln", "Sema3a", "Tef", "Hlf", "Nr1d1",
+                "Prkab2", "Bhlhe41", "Slc6a15", "Slc22a4", "Slc24a4")
+idx <- which(!(rownames(de.genes.counts) %in% gene_names))
 de.genes.counts1 <- de.genes.counts
 rownames(de.genes.counts1)[idx] <- ""
 ann.col <- desMat[, c(1:2)]
 de.heatmap <- de.genes.counts[filter2,]
 set.seed(0)
-ph1 <- pheatmap(log(de.heatmap+1), cluster_cols=TRUE, scale="row", 
-            color=pal, border_color=NA, fontsize_row=10, kmeans_k=4, annotation_col=ann.col, 
-            silent=TRUE)
+heatmap_data <- t(scale(t(log(de.heatmap+1)), center = TRUE, scale = FALSE))
+ph1 <- pheatmap(heatmap_data, cluster_cols=TRUE, scale="none", 
+            color=pal, border_color=NA, fontsize_row=10, kmeans_k=3, annotation_col=ann.col)
+clusterized.genes <- as.data.frame(ph1$kmeans$cluster)
+
+gene.map <- convertGenesViaMouseDb(gene.list=rownames(clusterized.genes), fromType="SYMBOL")
+converted.clusterized.gens <- attachGeneColumnToDf(mainDf=clusterized.genes, genesMap=gene.map, 
+                    rowNamesIdentifier="SYMBOL", mapFromIdentifier="SYMBOL", mapToIdentifier="ENTREZID")
+
+converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Gm2444")]  <- "100039826" ## not annotated in ncbi
+converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Entrez:210541")]  <- "210541" ## not annotated in ncbi
+converted.clusterized.gens <- converted.clusterized.gens[order(converted.clusterized.gens$`ph1$kmeans$cluster`),]
+
+save_pheatmap_pdf(filename="plots/heatmap_kmeans_k3.pdf", plot=ph1, width=20, height=20)
+WriteDataFrameAsTsv(data.frame.to.save=converted.clusterized.gens, file.name.path="plots/clustered_genes_by_kmeans3")
+
+ord.de.genes.counts <- de.heatmap[match(rownames(converted.clusterized.gens), rownames(de.heatmap)),]
+idx <- which(!(rownames(ord.de.genes.counts) %in% gene_names))
+
+rownames(ord.de.genes.counts)[idx] <- ""
+gaps.row <- c()
+for(i in c(1:3))
+{
+    li <- length(which(converted.clusterized.gens$`ph1$kmeans$cluster`==i))
+    l <- ifelse(i!=1, gaps.row[i-1]+li, li)
+    gaps.row <- c(gaps.row, l)
+}
+
+heatmap_data_scaled <- t(scale(t(log(ord.de.genes.counts+1)), center = TRUE, scale = TRUE))
+
+library(dendextend)
+column_dend <- as.dendrogram(hclust(dist(t(heatmap_data_scaled))))
+ord <- labels(column_dend)
+ord[11:15] <- labels(column_dend)[16:20]
+ord[16:20] <- labels(column_dend)[11:15]
+column_dend <- rotate(column_dend, ord)
+
+ph1 <- pheatmap(heatmap_data_scaled, cluster_cols=as.hclust(column_dend), scale="none", 
+            color=pal, border_color=NA, fontsize_row=9, fontsize_col=9, cluster_rows=FALSE,
+            annotation_col=ann.col, gaps_row=gaps.row)
+save_pheatmap_pdf(filename="plots/heatmap_gg_k3.pdf", plot=ph1, width=20, height=20)
+```
+
+## other heatmaps
+
+```{r}
+heatmap_data <- t(scale(t(log(ord.de.genes.counts+1)), center = TRUE, scale = FALSE))
+
+ph1 <- pheatmap(heatmap_data, cluster_cols=as.hclust(column_dend), scale="none", 
+            color=pal, border_color=NA, fontsize_row=9, fontsize_col=9, cluster_rows=FALSE,
+            annotation_col=ann.col, gaps_row=gaps.row,
+            breaks = c(min(heatmap_data), seq(quantile(as.vector(heatmap_data), .01), quantile(as.vector(heatmap_data), .99), length.out = length(pal)-1), max(heatmap_data)))
+save_pheatmap_pdf(filename="plots/heatmap_gg_k3_no_scale.pdf", plot=ph1, width=20, height=20)
+
+## Only SD samples
+heatmap_data <- t(scale(t(log(de.heatmap[, grep("^SD", desMat[,2])]+1)), center = TRUE, scale = FALSE))
+ph1 <- pheatmap(heatmap_data, cluster_cols=TRUE, scale="none", 
+            color=pal, border_color=NA, fontsize_row=10, kmeans_k=2, annotation_col=ann.col)
 clusterized.genes <- as.data.frame(ph1$kmeans$cluster)
 
 gene.map <- convertGenesViaMouseDb(gene.list=rownames(clusterized.genes), fromType="SYMBOL")
@@ -351,28 +445,27 @@ converted.clusterized.gens$gene[which(rownames(converted.clusterized.gens)=="Ent
 converted.clusterized.gens <- converted.clusterized.gens[order(converted.clusterized.gens$`ph1$kmeans$cluster`),]
 
 ord.de.genes.counts <- de.heatmap[match(rownames(converted.clusterized.gens), rownames(de.heatmap)),]
-idx <- which(!(rownames(ord.de.genes.counts) %in% c("Nr1d1", "Fabp7", "Per3", 
-                        "Jun", "Elk1", "Fosl2", "Mapk1", "Mapk3", "Mapk11")))
+idx <- which(!(rownames(ord.de.genes.counts) %in% gene_names))
 
 rownames(ord.de.genes.counts)[idx] <- ""
 gaps.row <- c()
-for(i in c(1:4))
+for(i in c(1:2))
 {
     li <- length(which(converted.clusterized.gens$`ph1$kmeans$cluster`==i))
     l <- ifelse(i!=1, gaps.row[i-1]+li, li)
     gaps.row <- c(gaps.row, l)
 }
 
+heatmap_data <- t(scale(t(log(ord.de.genes.counts[, grep("^SD", desMat[,2])]+1)), center = TRUE, scale = TRUE))
 
-ph1 <- pheatmap(log(ord.de.genes.counts+1), cluster_cols=TRUE, scale="row", 
+ph1 <- pheatmap(heatmap_data, cluster_cols=TRUE, scale="none", 
             color=pal, border_color=NA, fontsize_row=9, fontsize_col=9, cluster_rows=FALSE,
             annotation_col=ann.col, gaps_row=gaps.row)
-save_pheatmap_pdf(filename="plots/heatmap_gg_k4.pdf", plot=ph1, width=20, height=20)
+save_pheatmap_pdf(filename="plots/heatmap_gg_sd_only.pdf", plot=ph1, width=20, height=20)
 
 ```
 
-
-#Group gene profiles
+# Group gene profiles
 
 ## Group gene profiles by genotype
 
@@ -394,3 +487,20 @@ save_plot(filename=paste0("plots/", "Jun_Elk1_Fosl2_Mapk", "_log_gene_profile_ge
 ```
 
 
+## Group gene profiles by condition
+
+```{r}
+g <- geneGroupProfileRowsRev(normalized.counts=normExprData, design.matrix=designMatrix,
+            gene.names=c("Nr1d1", "Fabp7", "Per3"),
+            res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE, log.flag=TRUE)
+ggplotly(g)
+save_plot(filename=paste0("plots/", "Nr1d1_Fabp7_Per3", "_log_gene_profile_condition.pdf"), plot=g,
+        base_height=15, base_width=15)
+
+g <- geneGroupProfileRowsRev(normalized.counts=normExprData, design.matrix=designMatrix,
+            gene.names=c("Jun", "Elk1", "Fosl2", "Mapk1", "Mapk3", "Mapk11"),
+            res.o=de.genes.symb, show.plot=TRUE, plotly.flag=FALSE, log.flag=TRUE)
+ggplotly(g)
+save_plot(filename=paste0("plots/", "Jun_Elk1_Fosl2_Mapk", "_log_gene_profile_condition.pdf"), plot=g,
+        base_height=15, base_width=15) 
+```
