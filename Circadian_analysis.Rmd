@@ -1,10 +1,13 @@
 ---
 title: "Circadian Analysis"
-output: 
-  html_document:
-    code_folding: hide
-    toc: true
-    toc_float: false
+output:
+    html_document:
+        code_folding: hide
+        toc: yes
+        toc_float: no
+    pdf_document:
+        toc: yes
+
 ---
 
 ```{r include=FALSE}
@@ -16,6 +19,7 @@ library(lme4)
 library(readxl)
 
 options(warn=-1)
+set.seed(7)
 ```
 
 

@@ -214,12 +214,12 @@ cat(&quot;Estimates, errors and the significance&quot;)</code></pre>
 confint.merMod(mod_lmer, method = &quot;boot&quot;, nsim = 999)</code></pre>
 <pre><code>## Computing bootstrap confidence intervals ...</code></pre>
 <pre><code>##                         2.5 %      97.5 %
-## .sig01               9399.586   20937.035
-## .sigma              10368.243   11929.094
-## (Intercept)         27694.263   48929.590
-## time_scaled        -94148.702   46853.938
-## WT.MM              -35194.455   -4742.254
-## time_scaled:WT.MM -394179.159 -180176.370</code></pre>
+## .sig01               9168.051   20867.781
+## .sigma              10340.936   11949.842
+## (Intercept)         28714.922   49160.714
+## time_scaled        -97516.675   47096.142
+## WT.MM              -36220.231   -5146.717
+## time_scaled:WT.MM -391310.705 -192338.249</code></pre>
 <pre class="r"><code>cat(&quot;ANOVA table&quot;)</code></pre>
 <pre><code>## ANOVA table</code></pre>
 <pre class="r"><code>anova.lme(mod, type = &quot;marginal&quot;, adjustSigma = F)</code></pre>
@@ -296,12 +296,12 @@ cat(&quot;Estimates, errors and the significance&quot;)</code></pre>
 confint.merMod(mod1_lmer, method = &quot;boot&quot;, nsim = 999)</code></pre>
 <pre><code>## Computing bootstrap confidence intervals ...</code></pre>
 <pre><code>##                           2.5 %     97.5 %
-## .sig01             4.696290e-08  1.1290528
-## .sigma             3.150457e+00  3.6404357
-## (Intercept)        9.435463e+00 10.7424940
-## time_scaled       -3.744061e+01  5.2761860
-## WT.MM             -1.649332e+00  0.2283914
-## time_scaled:WT.MM -2.995863e+01 32.3698555</code></pre>
+## .sig01             3.696040e-09  1.1421226
+## .sigma             3.155698e+00  3.6478932
+## (Intercept)        9.441383e+00 10.7525585
+## time_scaled       -3.651272e+01  5.2414428
+## WT.MM             -1.704223e+00  0.2816872
+## time_scaled:WT.MM -3.097407e+01 32.6586697</code></pre>
 <pre class="r"><code>cat(&quot;ANOVA table&quot;)</code></pre>
 <pre><code>## ANOVA table</code></pre>
 <pre class="r"><code>anova.lme(mod1, type = &quot;marginal&quot;, adjustSigma = F)</code></pre>
@@ -375,17 +375,17 @@ cat(&quot;Estimates, errors and the significance&quot;)</code></pre>
 <pre class="r"><code>mod2_lmer &lt;- lmer(value ~ week * WT.M + (1|mice), data = period_data)
 confint.merMod(mod2_lmer, method = &quot;boot&quot;, nsim = 999)</code></pre>
 <pre><code>## Computing bootstrap confidence intervals ...</code></pre>
-<pre><code>##                          2.5 %     97.5 %
-## .sig01                0.000000  2.1155655
-## .sigma                2.473349  3.8410975
-## (Intercept)          21.303979 26.1578405
-## weekDD_Week_2        -7.036119  0.1426421
-## weekDD_Week_3        -1.376266  5.5521782
-## weekLD_Week_3        -3.499107  3.5779965
-## WT.MWT               -3.287081  3.6605964
-## weekDD_Week_2:WT.MWT -1.216271  7.7809875
-## weekDD_Week_3:WT.MWT -7.012872  2.2316391
-## weekLD_Week_3:WT.MWT -4.948787  4.4439545</code></pre>
+<pre><code>##                          2.5 %      97.5 %
+## .sig01                0.000000  2.04676228
+## .sigma                2.446744  3.89218064
+## (Intercept)          21.341927 26.39535290
+## weekDD_Week_2        -6.882343  0.09411144
+## weekDD_Week_3        -1.445615  5.57006947
+## weekLD_Week_3        -3.244210  3.70052742
+## WT.MWT               -3.064934  3.50727475
+## weekDD_Week_2:WT.MWT -1.460366  8.01695360
+## weekDD_Week_3:WT.MWT -6.998269  2.29216137
+## weekLD_Week_3:WT.MWT -5.115730  4.66459328</code></pre>
 <pre class="r"><code>cat(&quot;ANOVA table&quot;)</code></pre>
 <pre><code>## ANOVA table</code></pre>
 <pre class="r"><code>anova.lme(mod2, type = &quot;marginal&quot;, adjustSigma = F)</code></pre>

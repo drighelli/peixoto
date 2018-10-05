@@ -1,5 +1,5 @@
 ---
-title: "Shank3 sleep deprivation differential expression"
+title: "Shank3 Modulates Sleep and Expression of Circadian Transcription Factors differential expression"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: 
     pdf_document:
@@ -23,7 +23,7 @@ library(cowplot)
 ```
 
 # Description
-This is the report of the analysis made for the paper *Shank3 Modulates Sleep and Circadian Activity* 
+This is the report of the analysis made for the paper *Shank3 Modulates Sleep and Expression of Circadian Transcription Factors* 
 by *Ashley M. Ingiosi, Taylor Wintler, Hannah Schoch, Kristan G. Singletary, Dario Righelli, Leandro G. Roser, Davide Risso, Marcos G. Frank and Lucia Peixoto*.
 
 Autism Spectrum Disorder (ASD) is the most prevalent neurodevelopmental disorder in the US that often co-presents with sleep problems. Sleep impairments in ASD predict the severity of ASD core diagnostic symptoms and have a considerable impact on the quality of life of caregivers. However, little is known about the underlying molecular mechanism(s) of sleep impairments in ASD. In this study we investigated the role of Shank3, a high confidence ASD gene candidate, in the regulation of sleep. We show that Shank3 mutant mice have problems falling asleep despite accumulating sleep pressure. Using RNA-seq we show that sleep deprivation doubles the differences in gene expression between mutants and wild types and downregulates circadian transcription factors Per3, Dec2, and Rev-erb$\alpha$. Shank3 mutants also have trouble regulating locomotor activity in the absence of light. Overall, our study shows that Shank3 is an important modulator of sleep and circadian activity.
