@@ -1,4 +1,4 @@
-# Data and code for analysing "Shank3 Modulates Sleep and Circadian Activity" work
+# Data and code for analysing "Shank3 Modulates Sleep and Expression of Circadian Transcription Factors" work
 
 ## Data
 All the needed data are in the [data](data) folder
