@@ -1,13 +1,16 @@
 ---
-title: "Circadian Analysis"
-output:
+title: "Shank3 Modulates Sleep and Expression of Circadian Transcription Factors differential expression"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
     html_document:
+        fig_height: 9
+        fig_width: 9
+        toc: yes
+        toc_float: yes
+        toc_depth: 4
         code_folding: hide
-        toc: yes
-        toc_float: no
-    pdf_document:
-        toc: yes
-
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r include=FALSE}
@@ -25,8 +28,8 @@ set.seed(7)
 
 # Analysis for activity
 ```{r}
-wt <- read_xlsx("data/Activity_analysis_4_R.xlsx", sheet = 1)
-mut <- read_xlsx("data/Activity_analysis_4_R.xlsx", sheet = 2)
+wt <- read_xlsx("Activity_analysis_4_R.xlsx", sheet = 1)
+mut <- read_xlsx("Activity_analysis_4_R.xlsx", sheet = 2)
 
 wt <- wt %>% 
   bind_cols(WT.M=rep("WT", nrow(wt)), time = decimal_date(ymd(wt$`Total_revolutions/day`)), .) %>% 
@@ -65,8 +68,8 @@ anova.lme(mod, type = "marginal", adjustSigma = F)
 
 # Analysis for alpha
 ```{r}
-wt <- read_xlsx("data/Alpha_Activity_analysis_4_R.xlsx", sheet = 1, na = "NA")
-mut <- read_xlsx("data/Alpha_Activity_analysis_4_R.xlsx", sheet = 2, na = "NA")
+wt <- read_xlsx("Alpha_Activity_analysis_4_R.xlsx", sheet = 1, na = "NA")
+mut <- read_xlsx("Alpha_Activity_analysis_4_R.xlsx", sheet = 2, na = "NA")
 
 wt <- wt %>% 
   bind_cols(WT.M = rep("WT", nrow(wt)), time = decimal_date(ymd(wt$`Total_revolutions/day`)), .)%>% 
@@ -107,9 +110,9 @@ anova.lme(mod1, type = "marginal", adjustSigma = F)
 
 # Analysis for period
 ```{r}
-wt <- read_xlsx("data/Period_analysis_4_R.xlsx", sheet = 1)  %>% gather(mice, value, -1)
+wt <- read_xlsx("Period_analysis_4_R.xlsx", sheet = 1)  %>% gather(mice, value, -1)
 wt <- data.frame(WT.M=rep("WT", nrow(wt))) %>% bind_cols(wt)
-mut <- read_xlsx("data/Period_analysis_4_R.xlsx", sheet = 2)  %>% gather(mice, value, -1)
+mut <- read_xlsx("Period_analysis_4_R.xlsx", sheet = 2)  %>% gather(mice, value, -1)
 mut <- data.frame(WT.M=rep("M", nrow(mut))) %>% bind_cols(mut)
 
 period_data <- wt %>% bind_rows(mut)
