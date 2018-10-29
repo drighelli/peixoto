@@ -22,6 +22,16 @@ source("./R/plotGeneProfile.R")
 library(plotly)
 library(RUVSeq)
 library(cowplot)
+
+library(lubridate)
+library(dplyr)
+library(tidyr)
+library(nlme)
+library(lme4)
+library(readxl)
+
+options(warn=-1)
+set.seed(7)
 ```
 
 # Description
@@ -30,7 +40,9 @@ by *Ashley M. Ingiosi, Taylor Wintler, Hannah Schoch, Kristan G. Singletary, Dar
 
 Autism Spectrum Disorder (ASD) is the most prevalent neurodevelopmental disorder in the US that often co-presents with sleep problems. Sleep impairments in ASD predict the severity of ASD core diagnostic symptoms and have a considerable impact on the quality of life of caregivers. However, little is known about the underlying molecular mechanism(s) of sleep impairments in ASD. In this study we investigated the role of Shank3, a high confidence ASD gene candidate, in the regulation of sleep. We show that Shank3 mutant mice have problems falling asleep despite accumulating sleep pressure. Using RNA-seq we show that sleep deprivation doubles the differences in gene expression between mutants and wild types and downregulates circadian transcription factors Per3, Dec2, and Rev-erb$\alpha$. Shank3 mutants also have trouble regulating locomotor activity in the absence of light. Overall, our study shows that Shank3 is an important modulator of sleep and circadian activity.
 
-# Importing data
+# Differential Expression Analysis 
+
+## Importing data
 
 Importing data and filtering out those genes with cpm lesser than 1. 
 We use the *filtered.data* method in *NOISeq* package.
@@ -50,7 +62,7 @@ filteredCountsProp <- filterLowCounts(counts.dataframe=countMatrix,
 ```
 
 
-# Plot PCA of log unnormalized data
+## Plot PCA of log unnormalized data
 
 PCA Plot of filtered not-normalized data.
 
@@ -62,9 +74,9 @@ PlotPCAPlotlyFunction(counts.data.frame=log1p(filteredCountsProp),
 ```
 
 
-# Control Genes
+## Control Genes
 
-## Negative control genes
+### Negative control genes
 
 Loading Negative Control Genes to normalize data
 
@@ -92,7 +104,7 @@ ind.ctrls <- which(rownames(filteredCountsProp) %in% neg.ctrls.entrez)
 counts.neg.ctrls <- filteredCountsProp[ind.ctrls,]
 ```
 
-## positive control genes
+### positive control genes
 
 Loading Positive Control Genes to detect them during the differential expression step.
 
@@ -116,9 +128,9 @@ sd.pos.ctrls <- sd.pos.ctrls[-which(is.na(sd.pos.ctrls[,1])),]
 ```
 
 
-# Normalizations
+## Normalizations
 
-## TMM Normalization
+### TMM Normalization
 
 Normalizing data with *TMM*, as implemented in *edgeR* package, and plotting 
 a PCA and an RLE plot of them.
@@ -140,7 +152,7 @@ plotRLE(as.matrix(normPropCountsUqua), outline=FALSE, col=pal[designMatrix$gcond
 
 ```
 
-## TMM + RUVs Normalization
+### TMM + RUVs Normalization
 
 Applying a *RUVs* method of *RUVSeq* package on normalized data, 
 in order to adjust the counts for the unwanted variation.
@@ -168,7 +180,7 @@ pal <- RColorBrewer::brewer.pal(9, "Set1")
 plotRLE(normExprData, outline=FALSE, col=pal[designMatrix$gcondition])
 ```
 
-# edgeR Differential Expression Analysis
+## edgeR Differential Expression Analysis
 
 Making differential expression analysis with *edgeR* package on four 
 different contrasts.
@@ -205,9 +217,9 @@ names(rescList1) <- names
 
 ```
 
-## Shank3 Home Cage control VS Wild Type Home Cage Controls 
+### Shank3 Home Cage control VS Wild Type Home Cage Controls 
 
-### volcano plot
+#### volcano plot
 
 A volcano plot of differential expressed genes.
 
@@ -246,9 +258,9 @@ kowthc5 <- res.o[which(res.o$FDR < padj.thr),]
 kowthc5.sign.genes.entrez <- rownames(res.o)[which(res.o$FDR < venn.padgj.thr)]
 ```
 
-## Shank3 Sleed Deprivation VS Wild Type Sleep Deprivation
+### Shank3 Sleed Deprivation VS Wild Type Sleep Deprivation
 
-### volcano plot
+#### volcano plot
 
 A volcano plot of differential expressed genes.
 
@@ -285,7 +297,7 @@ kowtsd5.sign.genes.entrez <- rownames(res.rs2.o)[which(res.rs2.o$FDR < venn.padg
 ```
 
 
-## DE TABLE + Positive Controls table
+### DE TABLE + Positive Controls table
 We present a summarization of the results.
 The first table is a summarization on how many genes are Differentially Expressed.
 The second table explains on the first column how many positive controls we have,
@@ -298,9 +310,9 @@ ddetable
 pos.df
 ```
 
-# Venn Diagram
+## Venn Diagram
 
-## KOHC5-WTHC5 vs KOSD5-WTSD5
+### KOHC5-WTHC5 vs KOSD5-WTSD5
 
 We take the results of the two contrasts. 
 *Knock Out Sleed Deprivation VS Wild Type Sleep Deprivation* and 
@@ -319,7 +331,7 @@ venn <- Venn2de(x=kowthc5.sign.genes.entrez, y=kowtsd5.sign.genes.entrez,
 
 ```
 
-# Heatmaps
+## Heatmaps
 
 Setting up the data structures for the heatmps.
 
@@ -362,7 +374,7 @@ filter[is.na(filter)] <- FALSE
 
 ```
 
-## Heatmap gene by bene
+### Heatmap gene by bene
 
 ```{r}
 gene_names <- c("Nr1d1", "Fabp7", "Per3", "Jun", "Elk1", "Fosl2", "Mapk1", 
@@ -419,7 +431,7 @@ ph1 <- pheatmap(heatmap_data_scaled, cluster_cols=as.hclust(column_dend), scale=
 save_pheatmap_pdf(filename="plots/heatmap_gg_k3.pdf", plot=ph1, width=20, height=20)
 ```
 
-## other heatmaps
+### other heatmaps
 
 ```{r}
 heatmap_data <- t(scale(t(log(ord.de.genes.counts+1)), center = TRUE, scale = FALSE))
@@ -465,9 +477,9 @@ save_pheatmap_pdf(filename="plots/heatmap_gg_sd_only.pdf", plot=ph1, width=20, h
 
 ```
 
-# Group gene profiles
+## Group gene profiles
 
-## Group gene profiles by genotype
+### Group gene profiles by genotype
 
 ```{r}
 g <- geneGroupProfileRows(normalized.counts=normExprData, design.matrix=designMatrix,
@@ -479,7 +491,7 @@ save_plot(filename=paste0("plots/", "Nr1d1_Hlf_Per3_Bhlhe41_Tef", "_log_gene_pro
 ```
 
 
-## Group gene profiles by condition
+### Group gene profiles by condition
 
 ```{r}
 g <- geneGroupProfileRowsRev(normalized.counts=normExprData, design.matrix=designMatrix,
@@ -488,4 +500,110 @@ g <- geneGroupProfileRowsRev(normalized.counts=normExprData, design.matrix=desig
 ggplotly(g)
 save_plot(filename=paste0("plots/", "Nr1d1_Hlf_Per3_Bhlhe41_Tef", "_log_gene_profile_condition.pdf"), plot=g,
         base_height=15, base_width=15)
+```
+
+# Circadian Analysis
+## Analysis for activity
+```{r}
+wt <- read_xlsx("data/Activity_analysis_4_R.xlsx", sheet = 1)
+mut <- read_xlsx("data/Activity_analysis_4_R.xlsx", sheet = 2)
+
+wt <- wt %>% 
+  bind_cols(WT.M=rep("WT", nrow(wt)), time = decimal_date(ymd(wt$`Total_revolutions/day`)), .) %>% 
+  gather(mice, activity, -c(1:5))  %>%
+  mutate(time = time-min(time)) %>%  
+  dplyr::select(-`Total_revolutions/day`)
+
+mut <- mut %>% 
+  bind_cols(WT.M=rep("M", nrow(mut)), time = decimal_date(ymd(mut$`Total_revolutions/day`)), .) %>% 
+  gather(mice, activity, -c(1:5))  %>%
+  mutate(time = time-min(time)) %>% 
+  dplyr::select(-`Total_revolutions/day`)
+
+data <- wt %>% bind_rows(mut)
+
+data <- data %>% filter(week>=3)
+
+data$mice <- factor(data$mice, levels= unique(data$mice))
+data$time_scaled <- scale(data$time, scale=FALSE)
+data$period <- factor(data$period, levels= unique(data$period))
+data$WT.M <-factor(data$WT.M, levels=c("WT", "M"))
+
+mod <- lme(activity ~ time_scaled * WT.M, random=~1|mice, data = data)
+
+cat("Estimates, errors and the significance")
+summary(mod)
+
+cat("Bootstrap confidence intervals for the estimates")
+mod_lmer <- lmer(activity ~ time_scaled * WT.M + (1|mice), data = data)
+confint.merMod(mod_lmer, method = "boot", nsim = 999)
+
+cat("ANOVA table")
+anova.lme(mod, type = "marginal", adjustSigma = F)
+```
+
+
+## Analysis for alpha
+```{r}
+wt <- read_xlsx("data/Alpha_Activity_analysis_4_R.xlsx", sheet = 1, na = "NA")
+mut <- read_xlsx("data/Alpha_Activity_analysis_4_R.xlsx", sheet = 2, na = "NA")
+
+wt <- wt %>% 
+  bind_cols(WT.M = rep("WT", nrow(wt)), time = decimal_date(ymd(wt$`Total_revolutions/day`)), .)%>% 
+  gather(mice, alpha, -c(1:5))  %>%
+  mutate(time = time-min(time)) %>%  
+  dplyr::select(-`Total_revolutions/day`)
+
+mut <- mut %>% 
+  bind_cols(WT.M=rep("M", nrow(mut)), time = decimal_date(ymd(mut$`Total_revolutions/day`)), .)%>% 
+  gather(mice, alpha, -c(1:5))  %>%
+  mutate(time = time-min(time)) %>% 
+  dplyr::select(-`Total_revolutions/day`)
+
+alpha_data <- wt %>% bind_rows(mut)
+
+alpha_data <- alpha_data %>% filter(week>=3)
+alpha_data<- na.omit(alpha_data)
+
+alpha_data$mice <- factor(alpha_data$mice, levels= unique(alpha_data$mice))
+alpha_data$time_scaled <- scale(alpha_data$time, scale=FALSE)
+alpha_data$period <- factor(alpha_data$period, levels= unique(alpha_data$period))
+alpha_data$WT.M <- factor(alpha_data$WT.M, levels=c("WT", "M"))
+alpha_data$alpha <-  as.numeric(alpha_data$alpha)
+
+mod1 <- lme(alpha ~ time_scaled * WT.M, random=~1|mice, data = alpha_data, na.action = na.omit)
+
+cat("Estimates, errors and the significance")
+summary(mod1)
+
+cat("Bootstrap confidence intervals for the estimates")
+mod1_lmer <- lmer(alpha ~ time_scaled * WT.M + (1|mice), data = alpha_data)
+confint.merMod(mod1_lmer, method = "boot", nsim = 999)
+
+cat("ANOVA table")
+anova.lme(mod1, type = "marginal", adjustSigma = F)
+```
+
+
+## Analysis for period
+```{r}
+wt <- read_xlsx("data/Period_analysis_4_R.xlsx", sheet = 1)  %>% gather(mice, value, -1)
+wt <- data.frame(WT.M=rep("WT", nrow(wt))) %>% bind_cols(wt)
+mut <- read_xlsx("data/Period_analysis_4_R.xlsx", sheet = 2)  %>% gather(mice, value, -1)
+mut <- data.frame(WT.M=rep("M", nrow(mut))) %>% bind_cols(mut)
+
+period_data <- wt %>% bind_rows(mut)
+period_data$value <- as.numeric(period_data$value)
+
+mod2 <- lme(value~ week * WT.M, random = ~1|mice, data = period_data)
+
+cat("Estimates, errors and the significance")
+summary(mod2)
+
+cat("Bootstrap confidence intervals for the estimates")
+mod2_lmer <- lmer(value ~ week * WT.M + (1|mice), data = period_data)
+confint.merMod(mod2_lmer, method = "boot", nsim = 999)
+
+cat("ANOVA table")
+anova.lme(mod2, type = "marginal", adjustSigma = F)
 ```
