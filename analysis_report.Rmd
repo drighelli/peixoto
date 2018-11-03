@@ -607,3 +607,72 @@ confint.merMod(mod2_lmer, method = "boot", nsim = 999)
 cat("ANOVA table")
 anova.lme(mod2, type = "marginal", adjustSigma = F)
 ```
+
+## Analysis for Spectral Data
+```{r, fig.width = 8, fig.height = 14}
+
+# GAM plots
+library(mgcv)
+
+data<-read_xlsx("data/BL_spectral.xlsx")
+
+data <- data %>% gather(Hertz, value,  -c(1:3)) 
+data <- data %>% 
+  mutate(GT=replace(GT,GT == 1, "WT")) %>%  
+  mutate(GT=replace(GT,GT == 2, "MT")) %>% 
+  mutate(LD=replace(LD,LD == 1, "LIGHT")) %>% 
+  mutate(LD=replace(LD,LD == 2, "DARK")) %>%
+  mutate(hz= as.numeric(Hertz)) %>%
+  mutate(STATE = factor(STATE, levels = unique(STATE))) %>%
+  mutate(GT = factor(GT, levels = unique(GT))) %>%
+  mutate(LD  = factor(LD, levels = unique(LD))) %>%
+  mutate(value = replace(value,value == -99, NA))
+
+temp<-data %>% filter(STATE == "WAKEFULNESS" & LD == "LIGHT")
+index <-paste(data$STATE, data$LD, sep = "")
+index_lev <- unique(index)
+
+layout(matrix(seq_len(6), nrow = 3, ncol = 2, byrow = TRUE))
+shadow_col <- c(rgb(109, 109, 109, max = 255, alpha = 80), 
+                rgb(244, 66, 66, max = 255, alpha = 80))
+
+for(this_index in index_lev) {
+  state <- unique(data[index == this_index, ][, 1])
+  state <- as.character(unlist(state))
+  light <- unique(data[index == this_index, ][, 3])
+  light <- as.character(unlist(light))
+  
+  temp2 <- data[index == this_index, ]
+  plot(x = temp2$hz, y = temp2$value, type = "n", 
+       ylab =  "% of Total Power", ylim = c(0,20), 
+       xlab = 'Hertz', lwd = 3, cex = 1.2, 
+       main = paste0(state, "-", light), axes = FALSE) 
+  axis(1, at = seq(0, 20, by = 5), las = 1, pos = 0, lwd = 3)
+  axis(2, at = seq(0, 15, by = 3), las = 2, pos = 0, lwd = 3)
+  
+  mod <- list(wt = gam(value~s(hz), data = temp2[temp2$GT == "WT",]), 
+              mt = gam(value~s(hz), data = temp2[temp2$GT == "MT",]))
+  
+  for(i in seq_along(mod)) {
+    ss <- seq(min(temp2$hz) + 0.1, max(temp2$hz) - 0.1, 0.1)
+    pred <- predict(mod[[i]], data.frame(hz = ss), se = TRUE)
+    fit <- pred$fit
+    se <- pred$se.fit
+    lower <- fit - 1.96 * se 
+    upper  <- fit + 1.96 * se
+    to_plot <- data.frame(hz = ss, fit, lower, upper)
+    
+    polygon(c(to_plot$hz, rev(to_plot$hz)), 
+            c(to_plot$lower, rev(to_plot$upper)), 
+            col = shadow_col[i],
+            border = NA)
+    
+    lines(to_plot$hz, fit,  lwd=2, col = c("black", "red")[i])
+  }
+  legend(x = "topright",horiz = TRUE, c("MT", "WT"), 
+         pch = c(NA, NA), col = c("black", "red"), 
+         inset = c(0, -0.08), cex = 1,  bty = 'n', 
+         box.lty = c('NA', 'NA'), lwd = 3 ) 
+  
+}
+```
