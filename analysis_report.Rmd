@@ -676,3 +676,9 @@ for(this_index in index_lev) {
   
 }
 ```
+
+# Session Info
+```{r}
+sessionInfo()
+```
+
