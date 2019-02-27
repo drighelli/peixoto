@@ -529,6 +529,114 @@ save_plot(filename=paste0("plots/", "Nr1d1_Hlf_Per3_Bhlhe41_Tef", "_log_gene_pro
 
 
 
+# Circadian Analysis LD-DD
+
+## Analysis for activity
+```{r}
+wt <- read_xlsx("data/LD_DD_Activity_analysis_4_R.xlsx", sheet = 1)
+mut <- read_xlsx("data/LD_DD_Activity_analysis_4_R.xlsx", sheet = 2)
+
+wt <- wt %>% 
+  bind_cols(WT.M=rep("WT", nrow(wt)), time = decimal_date(ymd(wt$`Total_revolutions/day`)), .) %>% 
+  gather(mice, activity, -c(1:5))  %>%
+  mutate(time = time-min(time)) %>%  
+  dplyr::select(-`Total_revolutions/day`)
+
+mut <- mut %>% 
+  bind_cols(WT.M=rep("M", nrow(mut)), time = decimal_date(ymd(mut$`Total_revolutions/day`)), .) %>% 
+  gather(mice, activity, -c(1:5))  %>%
+  mutate(time = time-min(time)) %>% 
+  dplyr::select(-`Total_revolutions/day`)
+
+data <- wt %>% bind_rows(mut)
+
+data <- data %>% filter(week>=3)
+
+data$mice <- factor(data$mice, levels= unique(data$mice))
+data$time_scaled <- scale(data$time, scale=FALSE)
+data$period <- factor(data$period, levels= unique(data$period))
+data$WT.M <-factor(data$WT.M, levels=c("WT", "M"))
+
+mod <- lme(activity ~ time_scaled * WT.M, random=~1|mice, data = data)
+
+cat("Estimates, errors and the significance")
+summary(mod)
+
+cat("Bootstrap confidence intervals for the estimates")
+mod_lmer <- lmer(activity ~ time_scaled * WT.M + (1|mice), data = data)
+suppressMessages(confint.merMod(mod_lmer, method = "boot", nsim = 999))
+
+cat("ANOVA table")
+anova.lme(mod, type = "marginal", adjustSigma = F)
+```
+
+
+## Analysis for alpha
+```{r}
+wt <- read_xlsx("data/LD_DD_Alpha_Activity_analysis_4_R.xlsx", sheet = 1, na = "NA")
+mut <- read_xlsx("data/LD_DD_Alpha_Activity_analysis_4_R.xlsx", sheet = 2, na = "NA")
+
+wt <- wt %>% 
+  bind_cols(WT.M = rep("WT", nrow(wt)), time = decimal_date(ymd(wt$`Total_revolutions/day`)), .)%>% 
+  gather(mice, alpha, -c(1:5))  %>%
+  mutate(time = time-min(time)) %>%  
+  dplyr::select(-`Total_revolutions/day`)
+
+mut <- mut %>% 
+  bind_cols(WT.M=rep("M", nrow(mut)), time = decimal_date(ymd(mut$`Total_revolutions/day`)), .)%>% 
+  gather(mice, alpha, -c(1:5))  %>%
+  mutate(time = time-min(time)) %>% 
+  dplyr::select(-`Total_revolutions/day`)
+
+alpha_data <- wt %>% bind_rows(mut)
+
+alpha_data <- alpha_data %>% filter(week>=3)
+alpha_data<- na.omit(alpha_data)
+
+alpha_data$mice <- factor(alpha_data$mice, levels= unique(alpha_data$mice))
+alpha_data$time_scaled <- scale(alpha_data$time, scale=FALSE)
+alpha_data$period <- factor(alpha_data$period, levels= unique(alpha_data$period))
+alpha_data$WT.M <- factor(alpha_data$WT.M, levels=c("WT", "M"))
+alpha_data$alpha <-  as.numeric(alpha_data$alpha)
+
+mod1 <- lme(alpha ~ time_scaled * WT.M, random=~1|mice, data = alpha_data, na.action = na.omit)
+
+cat("Estimates, errors and the significance")
+summary(mod1)
+
+cat("Bootstrap confidence intervals for the estimates")
+mod1_lmer <- lmer(alpha ~ time_scaled * WT.M + (1|mice), data = alpha_data)
+suppressMessages(confint.merMod(mod1_lmer, method = "boot", nsim = 999))
+
+cat("ANOVA table")
+anova.lme(mod1, type = "marginal", adjustSigma = F)
+```
+
+
+## Analysis for period
+```{r}
+wt <- read_xlsx("data/LD_DD_Period_analysis_4_R.xlsx", sheet = 1)  %>% gather(mice, value, -1)
+wt <- data.frame(WT.M=rep("WT", nrow(wt))) %>% bind_cols(wt)
+mut <- read_xlsx("data/LD_DD_Period_analysis_4_R.xlsx", sheet = 2)  %>% gather(mice, value, -1)
+mut <- data.frame(WT.M=rep("M", nrow(mut))) %>% bind_cols(mut)
+
+period_data <- wt %>% bind_rows(mut)
+period_data$value <- as.numeric(period_data$value)
+
+mod2 <- lme(value~ week * WT.M, random = ~1|mice, data = period_data)
+
+cat("Estimates, errors and the significance")
+summary(mod2)
+
+cat("Bootstrap confidence intervals for the estimates")
+mod2_lmer <- lmer(value ~ week * WT.M + (1|mice), data = period_data)
+suppressMessages(confint.merMod(mod2_lmer, method = "boot", nsim = 999))
+
+cat("ANOVA table")
+anova.lme(mod2, type = "marginal", adjustSigma = F)
+```
+
+
 # Circadian Analysis LD-LD
 ## Analysis for activity
 ```{r}
@@ -549,11 +657,9 @@ mut <- mut %>%
 
 data <- wt %>% bind_rows(mut)
 
-#data <- data %>% filter(week>=3)
 
 data$mice <- factor(data$mice, levels= unique(data$mice))
 data$time_scaled <- scale(data$time, scale=FALSE)
-#data$period <- factor(data$period, levels= unique(data$period))
 data$WT.M <-factor(data$WT.M, levels=c("WT", "M"))
 
 mod3 <- lme(activity ~ time_scaled * WT.M, random=~1|mice, data = data)
@@ -589,12 +695,10 @@ mut <- mut %>%
 
 alpha_data <- wt %>% bind_rows(mut)
 
-#alpha_data <- alpha_data %>% filter(week>=3)
 alpha_data<- na.omit(alpha_data)
 
 alpha_data$mice <- factor(alpha_data$mice, levels= unique(alpha_data$mice))
 alpha_data$time_scaled <- scale(alpha_data$time, scale=FALSE)
-#alpha_data$period <- factor(alpha_data$period, levels= unique(alpha_data$period))
 alpha_data$WT.M <- factor(alpha_data$WT.M, levels=c("WT", "M"))
 alpha_data$alpha <-  as.numeric(alpha_data$alpha)
 

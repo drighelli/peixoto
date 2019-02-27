@@ -653,11 +653,8 @@ mut <- mut %>%
 
 data <- wt %>% bind_rows(mut)
 
-#data <- data %>% filter(week>=3)
-
 data$mice <- factor(data$mice, levels= unique(data$mice))
 data$time_scaled <- scale(data$time, scale=FALSE)
-#data$period <- factor(data$period, levels= unique(data$period))
 data$WT.M <-factor(data$WT.M, levels=c("WT", "M"))
 
 mod3 <- lme(activity ~ time_scaled * WT.M, random=~1|mice, data = data)
@@ -693,12 +690,10 @@ mut <- mut %>%
 
 alpha_data <- wt %>% bind_rows(mut)
 
-#alpha_data <- alpha_data %>% filter(week>=3)
 alpha_data<- na.omit(alpha_data)
 
 alpha_data$mice <- factor(alpha_data$mice, levels= unique(alpha_data$mice))
 alpha_data$time_scaled <- scale(alpha_data$time, scale=FALSE)
-#alpha_data$period <- factor(alpha_data$period, levels= unique(alpha_data$period))
 alpha_data$WT.M <- factor(alpha_data$WT.M, levels=c("WT", "M"))
 alpha_data$alpha <-  as.numeric(alpha_data$alpha)
 
