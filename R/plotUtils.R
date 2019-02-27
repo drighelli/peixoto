@@ -67,9 +67,9 @@ ProcessDEResultsForPlot <- function(de.results, threshold=0.05,
         de.results.new$log10FoldChange <- log10( (de.results.new[,1]/de.results.new[,2]))
         de.results.new$minuslog10pval <- -log10(de.results.new$PValue)
         # de.results.new$log2Counts <- (1/2) * log2((de.results.new[,1] * de.results.new[,2]))
-        de.results.new$significance <- paste("padj >=", threshold)
+        de.results.new$significance <- paste("P. Adj >=", threshold)
         idx <- which(de.results.new$FDR < threshold)
-        de.results.new$significance[idx] <- paste("padj <", threshold)
+        de.results.new$significance[idx] <- paste("P. Adj <", threshold)
         # de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
         de.results.new$minuslog10PAdj <- (-1) * log10(de.results.new$FDR)
         de.results.new$method <- rep(x="edgeR", times=dim(de.results.new)[1])
@@ -102,9 +102,9 @@ ProcessDEResultsForPlot <- function(de.results, threshold=0.05,
         de.results.new$log10FoldChange <- log10(fc)
         de.results.new$minuslog10pval <- -log10(de.results.new$PValue)
         # de.results.new$log2Counts <- (1/2) * log2((de.results.new[,1] * de.results.new[,2]))
-        de.results.new$significance <- paste("padj >=", threshold)
+        de.results.new$significance <- paste("P. Adj >=", threshold)
         idx <- which(de.results.new$FDR < threshold)
-        de.results.new$significance[idx] <- paste("padj <", threshold)
+        de.results.new$significance[idx] <- paste("P. Adj <", threshold)
         # de.results.new <- de.results.new[order(de.results.new$padj, decreasing=FALSE),]
         de.results.new$minuslog10PAdj <- (-1) * log10(de.results.new$FDR)
         de.results.new$method <- rep(x="edgeR", times=dim(de.results.new)[1])

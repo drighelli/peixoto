@@ -199,7 +199,7 @@ venn.padgj.thr <- 0.1
 desMat <- cbind(designMatrix, ruvedSExprData$W)
 colnames(desMat) <- c(colnames(designMatrix), colnames(ruvedSExprData$W))
 
-cc <- c("S3HC5 - WTHC5", "S3SD5 - WTSD5")
+cc <- c("S3HC5 - WTHC5", "S3SD5 - WTSD5", "WTSD5 - WTHC5")
 
 rescList1 <- applyEdgeR(counts=filteredCountsProp, design.matrix=desMat,
                         factors.column="gcondition", 
@@ -237,7 +237,7 @@ WriteDataFrameAsTsv(data.frame.to.save=res.o,
 
 vp <- luciaVolcanoPlot(res.o, prefix=names(rescList1)[1], 
                         positive.controls.df=NULL,
-                        threshold=padj.thr)
+                        threshold=padj.thr, plotly.flag=FALSE)
 print(vp)
 
 de <- sum(res.o$FDR < padj.thr)
@@ -278,7 +278,7 @@ WriteDataFrameAsTsv(data.frame.to.save=res.rs2.o,
 
 vp <- luciaVolcanoPlot(res.rs2.o, positive.controls.df=NULL,
                        prefix=names(rescList1)[2], 
-                       threshold=padj.thr)
+                       threshold=padj.thr, plotly.flag=FALSE)
 print(vp)
 
 de <- sum(res.rs2.o$FDR < padj.thr)
@@ -308,6 +308,30 @@ positive controls have beed identified on the NOT differentially expressed genes
 ```{r}
 ddetable
 pos.df
+```
+
+
+### WTSD5 - WTHC5 positive controls
+
+```{r}
+
+res.o.map.wtsd <- convertGenesViaMouseDb(gene.list=rownames(rescList1[["WTSD5 - WTHC5"]]), 
+                            fromType="ENTREZID")
+
+res.o.wt.sd <- attachGeneColumnToDf(mainDf=rescList1[["WTSD5 - WTHC5"]],
+                                genesMap=res.o.map.wtsd,
+                                rowNamesIdentifier="ENTREZID",
+                                mapFromIdentifier="ENTREZID",
+                                mapToIdentifier="SYMBOL")
+
+
+WriteDataFrameAsTsv(data.frame.to.save=res.o, 
+                    file.name.path=paste0(names(rescList1)[3], "_edgeR"))
+
+vp <- luciaVolcanoPlot1(res.o.wt.sd, sd.pos.ctrls, prefix=names(rescList1)[3], 
+                    threshold=padj.thr, plotly.flag=FALSE)
+print(vp)
+
 ```
 
 ## Venn Diagram
