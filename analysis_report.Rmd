@@ -1,6 +1,5 @@
 ---
-title: Shank3 Modulates Sleep and Expression of Circadian Transcription Factors differential
-  expression
+title: "Shank3 Modulates Sleep and Expression of Circadian Transcription Factors differential expression"
 editor_options:
   chunk_output_type: console
 date: "`r format(Sys.time(), '%B %d, %Y')`"
@@ -12,9 +11,6 @@ output:
     toc: yes
     toc_depth: 4
     toc_float: yes
-  pdf_document:
-    toc: yes
-    toc_depth: '4'
 ---
 
 ```{r include=FALSE}
