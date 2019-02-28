@@ -136,7 +136,7 @@ luciaVolcanoPlot1 <- function(res.o, positive.controls.df, prefix,
                                             text=paste0("padj=", padj, "\nname=", gene)), 
                            size=0.9) +
                 # scale_color_manual(values=c("blue2", "gray28", "red2", "gray28"))
-                scale_color_manual(values=c("gray56", "gray23", "red2", "red2"))
+                scale_color_manual(values=c("black", "gray56", "red2", "red2"))
         }
     }
     
