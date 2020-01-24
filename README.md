@@ -1,5 +1,9 @@
 # Data and code for analysing "Shank3 Modulates Sleep and Expression of Circadian Transcription Factors" work
 
+## Requisites
+These reports have been made with R 3.4.3 and Bioconductor 3.6.
+With older/newer versions some results could change.
+
 ## Data
 All the needed data are in the [data](data) folder.
 
